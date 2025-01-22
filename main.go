@@ -9,12 +9,13 @@ import (
 )
 
 func main() {
+	port := ":8000"
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter())
 	mainMux.Handle("/", router.WebRouter())
 
-	fmt.Println()
-	if err := http.ListenAndServe(":8000", mainMux); err != nil {
+	fmt.Printf("Server running in 'http://localhost%s'", port)
+	if err := http.ListenAndServe(port, mainMux); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,15 +1,22 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"forum/router"
 	"log"
 	"net/http"
 
-	"forum/router"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
 	port := ":8000"
+	_, db_err := sql.Open("sqlite3","./forum.db")
+	if db_err != nil {
+		log.Fatal(db_err.Error())
+	}
+	
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter())
 	mainMux.Handle("/", router.WebRouter())

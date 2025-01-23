@@ -5,6 +5,6 @@ type Posts struct {
 	UserId int `json:"user_id"`
 	Title string `json:"title"`
 	Content string `json:"content"`
-	Date string `json:"date"`
 	Categories string `json:"categories"`
+	CreatedAt string `json:"created_at"`
 }

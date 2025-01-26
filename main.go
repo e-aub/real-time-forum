@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"forum/handlers"
 	"forum/router"
 	"log"
 	"net/http"
@@ -16,10 +17,11 @@ func main() {
 	if db_err != nil {
 		log.Fatal(db_err.Error())
 	}
-	
+
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter(db))
 	mainMux.Handle("/", router.WebRouter())
+	mainMux.HandleFunc("/ws", handlers.Test)
 
 	fmt.Printf("Server running in 'http://localhost%s'", port)
 	if err := http.ListenAndServe(port, mainMux); err != nil {

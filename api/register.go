@@ -125,11 +125,8 @@ func RegisterUser(data models.User, db *sql.DB) (int, string) {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}
 	query := `INSERT INTO users(nickname,age,gender,firstname,lastname,email,password) VALUES(?,?,?,?,?,?,?);`
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
-	}
-	_, err = stmt.Exec(data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
+
+	_, err = db.Exec(query, data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
 	if err != nil {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}

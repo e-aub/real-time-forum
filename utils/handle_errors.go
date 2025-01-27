@@ -6,11 +6,9 @@ import (
 )
 
 func JsonErr(w http.ResponseWriter, code int, message string) {
-	res := struct {
-		Status  int
-		Message string
-	}{code, message}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(struct {
+		Message string `json:"message"`
+	}{Message: message})
 }

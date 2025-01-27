@@ -52,9 +52,8 @@ class HomePage extends Page {
     }
 }
 
-class LoginPage extends Page {
+class LoginPage{
     constructor() {
-        super();
         this.errors = {
             login_name: '',
             password: ''
@@ -95,7 +94,7 @@ class LoginPage extends Page {
             }
             this.updateErrorMessages();
             this.updateFormValidity(); // Add form validity check
-        }, 300);
+        }, 500);
     }
 
     // Add method to check overall form validity
@@ -145,7 +144,13 @@ class LoginPage extends Page {
             if (!response.ok) {
                 const errorData = await response.json();
                 if (response.status === 401) {
-                    this.errors.login_name = errorData.error;
+                    if (errorData.message == "Invalid username or email"){
+                        this.errors.login_name = errorData.message;
+                        this.errors.password = null;
+                    }else{                        
+                        this.errors.password = errorData.message;
+                        this.errors.login_name = null;
+                    }
                     this.updateErrorMessages();
                 } else {
                     throw new Error(errorData.error || 'Login failed');
@@ -205,10 +210,12 @@ class LoginPage extends Page {
         const homeLink = document.getElementById('homeLink');
 
         emailInput.addEventListener('input', (e) => {
+            this.debounceValidation('password', e.target.value);
             this.debounceValidation('login_name', e.target.value);
         });
 
         passwordInput.addEventListener('input', (e) => {
+            this.debounceValidation('login_name', e.target.value);
             this.debounceValidation('password', e.target.value);
         });
 

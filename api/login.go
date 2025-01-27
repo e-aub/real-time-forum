@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"forum/utils"
@@ -33,8 +35,10 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	err := db.QueryRow(query, &userData.LoginName, &userData.LoginName).Scan(&user_id, &hashed_pass)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			fmt.Fprintln(os.Stderr, err)
 			utils.JsonErr(w, http.StatusUnauthorized, "Invalid username or email")
 		} else {
+			fmt.Fprintln(os.Stderr, err)
 			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		return

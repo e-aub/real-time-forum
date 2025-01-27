@@ -129,6 +129,7 @@ func RegisterUser(data models.User, db *sql.DB) (int, string) {
 	if err != nil {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}
+	defer stmt.Close()
 	_, err = stmt.Exec(data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
 	if err != nil {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)

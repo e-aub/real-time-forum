@@ -20,7 +20,7 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var userData struct {
-		LoginName string `json:"login_name"`
+		LoginName string `json:"login_name"` // nickname or password
 		Password  string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
@@ -39,6 +39,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		return
 	}
+
 	pass_err := bcrypt.CompareHashAndPassword([]byte(hashed_pass), []byte(userData.Password))
 	if pass_err != nil {
 		utils.JsonErr(w, http.StatusUnauthorized, "Invalid password")

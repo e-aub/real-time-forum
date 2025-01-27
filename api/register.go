@@ -22,7 +22,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Message string
 	}
 	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
-		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		utils.JsonErr(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	} else if !CheckName(userData.FirstName) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid firstname!")
@@ -125,12 +125,8 @@ func RegisterUser(data models.User, db *sql.DB) (int, string) {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}
 	query := `INSERT INTO users(nickname,age,gender,firstname,lastname,email,password) VALUES(?,?,?,?,?,?,?);`
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
+
+	_, err = db.Exec(query, data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
 	if err != nil {
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}

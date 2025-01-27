@@ -3,10 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"forum/handlers"
-	"forum/router"
 	"log"
 	"net/http"
+
+	"forum/handlers"
+	"forum/router"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -23,7 +24,7 @@ func main() {
 	mainMux.Handle("/", router.WebRouter())
 	mainMux.HandleFunc("/ws", handlers.Test)
 
-	fmt.Printf("Server running in 'http://localhost%s'", port)
+	fmt.Printf("Server running in 'http://localhost%s'\n", port)
 	if err := http.ListenAndServe(port, mainMux); err != nil {
 		log.Fatal(err)
 	}

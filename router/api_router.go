@@ -2,16 +2,18 @@ package router
 
 import (
 	"database/sql"
-	"forum/api"
 	"net/http"
+
+	"forum/api"
 )
 
-type CostomHandler func(w http.ResponseWriter,r *http.Request, db *sql.DB)
 func APIRouter(db *sql.DB) *http.ServeMux {
 	router := http.NewServeMux()
-	router.HandleFunc("/api/register", func(w http.ResponseWriter,r *http.Request) {
-		api.Register(w,r,db)
+	router.HandleFunc("POST /api/register", func(w http.ResponseWriter, r *http.Request) {
+		api.Register(w, r, db)
 	})
-	router.HandleFunc("/api/login", api.Login)
+	router.HandleFunc("POST /api/login", func(w http.ResponseWriter, r *http.Request) {
+		api.Login(w, r, db)
+	})
 	return router
 }

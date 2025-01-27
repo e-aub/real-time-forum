@@ -3,3 +3,7 @@ serve:
 
 install:
 	@go mod download
+
+initdb:
+	@sqlite3 forum.db < ./models/initdb.sql
+	

@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS comments (
     content varchar(500) NOT NULL,
     created_at TEXT NOT NULL DEFAULT current_timestamp,
     FOREIGN key (user_id) REFERENCES users (id),
-    FOREIGN key (post_id) REFERENCES posts (id),
+    FOREIGN key (post_id) REFERENCES posts (id)
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -43,6 +43,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL UNIQUE,
     token varchar(100) NOT NULL UNIQUE,
-    FOREIGN key (user_id) REFERENCES users (id),
     created_at TEXT NOT NULL DEFAULT current_timestamp,
+    FOREIGN key (user_id) REFERENCES users (id)
 );

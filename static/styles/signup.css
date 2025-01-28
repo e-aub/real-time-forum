@@ -1,0 +1,131 @@
+.signup-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.signup-title {
+    text-align: center;
+    color: #1a1a1a;
+    font-size: 24px;
+    margin-bottom: 24px;
+}
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    align-items: center;
+}
+
+.form-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.form-input {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    border-color: #0066cc;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.form-input::placeholder {
+    color: #999;
+    font-size: 14px;
+}
+
+.form-input.error {
+    border-color: #dc3545;
+}
+
+.error-text {
+    color: #dc3545;
+    font-size: 14px;
+    min-height: 20px;
+    width: 100%;
+}
+
+.signup-button {
+    background: #0066cc;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.signup-button:hover:not(:disabled) {
+    background: #0052a3;
+}
+
+.signup-button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+.divider {
+    text-align: center;
+    margin: 16px 0;
+    color: #666;
+    position: relative;
+    width: 100%;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+.login-link {
+    display: block;
+    text-align: center;
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 16px;
+    width: 100%;
+}
+
+.login-link:hover {
+    text-decoration: underline;
+}

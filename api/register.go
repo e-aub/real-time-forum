@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"slices"
 	"strconv"
@@ -19,30 +21,38 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var userData models.User
 	var res struct {
 		Status  int
-		Message string
+		Message string `json:"message"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
 		utils.JsonErr(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		fmt.Fprintln(os.Stderr, err)
 		return
 	} else if !CheckName(userData.FirstName) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid firstname!")
+		fmt.Println("invalid firstname!")
 		return
 	} else if !CheckName(userData.LastName) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid lastname!")
+		fmt.Println("invalid lastname!")
 		return
 	} else if !CheckAge(userData.Age) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid age!")
+		fmt.Println("invalid age!")
 		return
 	} else if !CheckGender(userData.Gender) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid gender!")
+		fmt.Println("invalid gender!")
 		return
 	} else if !CheckEmail(userData.Email) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid email!")
+		fmt.Println("invalid email!")
 		return
 	} else if !CheckNickName(userData.Nickname) {
 		utils.JsonErr(w, http.StatusBadRequest, "invalid nickname!")
+		fmt.Println("invalid nickname!")
 		return
 	} else if !CheckPassword(userData.Password) || userData.Password != userData.Password2 {
+		fmt.Println("invalid password!")
 		utils.JsonErr(w, http.StatusBadRequest, "invalid password!")
 		return
 	}
@@ -53,7 +63,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func CheckName(name string) bool {
-	re, err := regexp.Compile(`^[a-zA-Z]{4,50}$`)
+	re, err := regexp.Compile(`^[a-zA-Z ]{4,50}$`)
 	if err != nil {
 		return false
 	}
@@ -122,12 +132,22 @@ func CheckPassword(password string) bool {
 func RegisterUser(data models.User, db *sql.DB) (int, string) {
 	password, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}
 	query := `INSERT INTO users(nickname,age,gender,firstname,lastname,email,password) VALUES(?,?,?,?,?,?,?);`
 
 	_, err = db.Exec(query, data.Nickname, data.Age, data.Gender, data.FirstName, data.LastName, data.Email, string(password))
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "UNIQUE constraint failed") {
+			if strings.Contains(errMsg, "nickname") {
+				return http.StatusConflict, "nickname already in use!"
+			} else if strings.Contains(errMsg, "email") {
+				return http.StatusConflict, "email already in use!"
+			}
+		}
 		return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 	}
 	return http.StatusCreated, "user created successfully!"

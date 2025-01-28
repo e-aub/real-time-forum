@@ -1,7 +1,7 @@
-import { Page } from "./page.js";
+import { Page, signUpTemplate } from "./pages.js";
 
 export class SignupPage extends Page {
-    constructor(router) {
+    constructor() {
         super();
         this.errors = {
             nickname: '',
@@ -13,14 +13,13 @@ export class SignupPage extends Page {
             password: '',
             password2: ''
         };
-        this.router = router;
     }
 
     validateNickname(value) {
         if (!value) return 'Nickname is required';
         if (value.length < 3) return 'Nickname must be at least 3 characters';
         if (value.length > 20) return 'Nickname must be less than 20 characters';
-        if (!/^[a-zA-Z0-9_]+$/.test(value)) return 'Nickname can only contain letters, numbers and underscores';
+        if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Nickname can only contain letters, numbers, hyphen and underscores';
         return '';
     }
 
@@ -64,7 +63,7 @@ export class SignupPage extends Page {
         const hasSpecial = /[!@#$%^&*()_+\-=\[\]{}; ':"\\|,.<>/?]/.test(value);
         
         if (!hasLower || !hasUpper || !hasDigit || !hasSpecial) {
-            return 'Password must include uppercase, lowercase, number, and special character';
+            return `Password must include ${!hasUpper ? 'uppercase, ' : ''}${!hasLower ? 'lowercase, ' : ''}${!hasDigit ? 'digit, ' : ''}${!hasSpecial ? 'special character' : ''}`;
         }
         return '';
     }
@@ -155,11 +154,8 @@ export class SignupPage extends Page {
                 const errorData = await response.json();
                 if (response.status === 409) {
                     if (errorData.message.includes('nickname')) {
-                        console.log("nickname");
-                        
                         this.errors.nickname = 'Nickname already taken';
                     } else if (errorData.message.includes('email')) {
-                        console.log("email");
                         this.errors.email = 'Email already registered';
                     }
                     this.updateErrorMessages();
@@ -177,110 +173,7 @@ export class SignupPage extends Page {
     }
 
     render() {
-        document.body.innerHTML = `
-            <div class="signup-container">
-                <h1 class="signup-title">Create your account</h1>
-                <form class="signup-form" id="signupForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <input 
-                                type="text" 
-                                name="firstname" 
-                                class="form-input" 
-                                placeholder="First name"
-                            >
-                            <div class="error-text" id="firstname-error"></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <input 
-                                type="text" 
-                                name="lastname" 
-                                class="form-input" 
-                                placeholder="Last name"
-                            >
-                            <div class="error-text" id="lastname-error"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <input 
-                            type="text" 
-                            name="nickname" 
-                            class="form-input" 
-                            placeholder="Nickname"
-                        >
-                        <div class="error-text" id="nickname-error"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <input 
-                                type="number" 
-                                name="age" 
-                                class="form-input" 
-                                placeholder="Age"
-                                min="13"
-                                max="120"
-                            >
-                            <div class="error-text" id="age-error"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <select name="gender" class="form-input">
-                                <option value="male" selected>Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                            <div class="error-text" id="gender-error"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input 
-                            type="email" 
-                            name="email" 
-                            class="form-input" 
-                            placeholder="Email"
-                            autocomplete="email"
-                        >
-                        <div class="error-text" id="email-error"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input 
-                            type="password" 
-                            name="password" 
-                            class="form-input" 
-                            placeholder="Password"
-                            autocomplete="new-password"
-                        >
-                        <div class="error-text" id="password-error"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <input 
-                            type="password" 
-                            name="password2" 
-                            class="form-input" 
-                            placeholder="Confirm password"
-                            autocomplete="new-password"
-                        >
-                        <div class="error-text" id="password2-error"></div>
-                    </div>
-    
-                    <button type="submit" class="signup-button" disabled>Create Account</button>
-                    
-                    <div class="divider">or</div>
-                </form>
-                
-                <a href="/login" class="login-link" id="loginLink">Already have an account? Log in</a>
-            </div>
-        `;
-
-        const style = document.createElement("link");
-        style.rel = "stylesheet";
-        style.href = "/static/styles/signup.css";
-        document.head.appendChild(style);
+        document.body.innerHTML = signUpTemplate;
 
         const form = document.getElementById('signupForm');
         const inputs = form.querySelectorAll('input, select');

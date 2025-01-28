@@ -22,11 +22,20 @@ class Router {
 
     route(routeName) {
         const route = this.routes[routeName];
-        if (route) {
-            route.render();
-        } else {
-            this.render404();
-        }
+        // let links = document.getElementsByTagName('link');
+        // for (let i = 0; i < links.length; i++) {
+        //     links[i].remove();
+        // }
+        // let preloadLink = document.createElement('link');
+        // preloadLink.rel = 'preload';
+        // preloadLink.href = `static/styles${routeName}${routeName == "/" ? "style" : ""}.css`;
+        // preloadLink.as = 'style';
+        // document.head.appendChild(preloadLink);
+            if (route) {
+                route.render();
+            } else {
+                this.render404();
+            }
     }
 
     go(routeName) {

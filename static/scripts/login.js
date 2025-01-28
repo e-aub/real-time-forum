@@ -1,13 +1,12 @@
-import { Page } from "./page.js";
+import { Page, loginTemplate } from "./pages.js";
 
 export class LoginPage extends Page {
-    constructor(router) {
+    constructor() {
         super();
         this.errors = {
             login_name: '',
             password: ''
         };
-        this.router = router;
         this.debounceTimeout = null;
     }
 
@@ -117,44 +116,7 @@ export class LoginPage extends Page {
     }
 
     render() {
-        document.body.innerHTML = `
-                    <div class="login-container">
-                        <h1 class="login-title">Log in to Talk</h1>
-                        <form class="login-form" id="loginForm">
-                            <div class="form-group">
-                                <input 
-                                    type="text" 
-                                    name="login_name" 
-                                    class="form-input" 
-                                    placeholder="Email or username"
-                                    autocomplete="username"
-                                >
-                                <div class="error-text" id="email-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <input 
-                                    type="password" 
-                                    name="password" 
-                                    class="form-input" 
-                                    placeholder="Password"
-                                    autocomplete="current-password"
-                                >
-                                <div class="error-text" id="password-error"></div>
-                            </div>
-        
-                            <button type="submit" class="login-button" disabled>Log In</button>
-                            
-                            <div class="divider">or</div>
-                        </form>
-                        
-                        <a href="/signup" class="home-link" id="sign-up-link">Create an account</a>
-                    </div>
-                `;
-        const style = document.createElement("link");
-        style.rel = "stylesheet"
-        style.href = "/static/styles/login.css"
-        document.head.appendChild(style)
+        document.body.innerHTML = loginTemplate;
         const form = document.getElementById('loginForm');
         const emailInput = form.querySelector('input[name="login_name"]');
         const passwordInput = form.querySelector('input[name="password"]');

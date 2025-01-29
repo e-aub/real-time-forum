@@ -5,34 +5,38 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-
-	"forum/utils"
+	"time"
 )
 
-type CostomHandlFunc func(w http.ResponseWriter, r *http.Request, db *sql.DB)
+type customHandler func(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 
-func Auth(next CostomHandlFunc, db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		token, token_err := r.Cookie("token")
-		if token_err != nil {
-			fmt.Fprintln(os.Stderr, token_err.Error())
-			utils.JsonErr(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+func Middleware(db *sql.DB, next customHandler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		if _, err := CheckToken(token.Value, db); err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			utils.JsonErr(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		token := cookie.Value
+		var userId int
+		var expiresAt time.Time
+		err = db.QueryRow("SELECT user_id, expires_at FROM sessions WHERE token=?", token).Scan(&userId, &expiresAt)
+
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		next(w, r, db)
-	}
-}
 
-func CheckToken(token string, db *sql.DB) (int, error) {
-	var user_id int
-	query := `SELECT user_id FROM sessions WHERE token = ?;`
-	if err := db.QueryRow(query, &token).Scan(&user_id); err != nil {
-		return 0, err
-	}
-	return user_id, nil
+		if time.Now().After(expiresAt) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		next(w, r, db, userId)
+	})
 }

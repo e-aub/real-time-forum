@@ -141,11 +141,55 @@ const loginTemplate = `
                     </div>
                 `;
 
-const homeTemplate = `
-                <div class="home-container">
-                    <h1 class="home-title">Welcome to Talk</h1>
-                    <p class="home-description">Connect with friends and the world around you on Talk.</p>
-                </div>
-`;
+const homeTemplate =`<div class="header">
+                        <a href="/posts">Home</a>
+                        <img class="logo" src="/static/images/logo.png" alt="talk" />
+                        <div class="user-profile" onclick="toggleUserMenu()">
+                            <img src="/api/placeholder/40/40" alt="User" style="border-radius: 50%;" />
+                            <div class="profile-popup" id="profilePopup">
+                                <button class="logout-btn">Déconnexion</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="container">
+                        <div class="create-post">
+                            <div class="create-post-body">
+                                <div class="create-post-input">
+                                    <img src="/api/placeholder/40/40" alt="User" />
+                                    <input type="text" placeholder="Quoi de neuf, Elhaddad ?" onclick="openCreatePost()" readonly />
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="posts-feed">
+                            <!-- Posts will be dynamically added here -->
+                        </div>
+                    </div>
+
+                    <div class="online-users">
+                        <h3>Contacts</h3>
+                        <ul class="user-list">
+                            <li class="user-item" onclick="openChat('Ziad Choukri')">
+                                <img src="/api/placeholder/36/36" alt="Ziad" />
+                                <span>Ziad Choukri</span>
+                                <div class="online-indicator"></div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Modals -->
+                    <div class="modal" id="createPostModal">
+                        <!-- Create post modal content -->
+                    </div>
+
+                    <div class="modal comments-modal" id="commentsModal">
+                        <!-- Comments modal content -->
+                    </div>
+
+                    <div class="chat-container">
+                        <!-- Chat windows will be dynamically added here -->
+                    </div>`;
 
 export { Page, homeTemplate, loginTemplate, signUpTemplate };

@@ -43,6 +43,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL UNIQUE,
     token varchar(100) NOT NULL UNIQUE,
-    created_at TEXT NOT NULL DEFAULT current_timestamp,
+    expires_at TEXT NOT NULL,
     FOREIGN key (user_id) REFERENCES users (id)
 );

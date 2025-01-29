@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+
 func HomePage(w http.ResponseWriter, r *http.Request) {
 	content, err := os.ReadFile("views/index.html")
 	if err != nil {

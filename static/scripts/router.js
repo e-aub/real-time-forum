@@ -50,9 +50,9 @@ class Router {
 
 
 var router = new Router({
-    '/': new HomePage(router),
-    '/login': new LoginPage(router),
-    '/signup': new SignupPage(router),
+    '/': new HomePage(),
+    '/login': new LoginPage(),
+    '/signup': new SignupPage(),
 });
 
 export { router };

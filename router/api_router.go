@@ -15,5 +15,9 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /api/login", func(w http.ResponseWriter, r *http.Request) {
 		api.Login(w, r, db)
 	})
+
+	router.HandleFunc("GET /api/userData", func(w http.ResponseWriter, r *http.Request) {
+		// middleware.Middleware()
+	})
 	return router
 }

@@ -64,11 +64,10 @@ func CreateSession(w http.ResponseWriter, user_id int, db *sql.DB) error {
 	}
 	query := `INSERT
 		INTO 
-		sessions(user_id, token) 
-		VALUES(?, ?) 
-		ON CONFLICT(user_id) DO UPDATE SET token = EXCLUDED.token, 
-		created_at = CURRENT_TIMESTAMP;`
-	_, err := db.Exec(query, &user_id, &uid)
+		sessions(user_id, token, expires_at) 
+		VALUES(?, ?, $1) 
+		ON CONFLICT(user_id) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at;`
+	_, err := db.Exec(query, &user_id, &uid, time.Now().Add(time.Hour*24))
 	if err != nil {
 		return err
 	}

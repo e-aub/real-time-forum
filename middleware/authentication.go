@@ -39,8 +39,9 @@ func NewRateLimiter(userId, rate, capacity int, limiterTime time.Duration) *Rate
 
 func (r *RateLimiter) Allow() bool {
 	if time.Since(r.LastTime) >= time.Second {
+		duration := time.Since(r.LastTime).Seconds()
 		r.LastTime = time.Now()
-		r.Bucket = min(r.Bucket+r.Rate, r.Capacity)
+		r.Bucket = min(r.Bucket+(int(duration)*r.Rate), r.Capacity)
 	}
 	if r.Bucket > 0 {
 		r.Bucket--

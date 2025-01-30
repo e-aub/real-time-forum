@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"forum/api"
+	"forum/middleware"
 )
 
 func APIRouter(db *sql.DB) *http.ServeMux {
@@ -16,8 +17,8 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 		api.Login(w, r, db)
 	})
 
-	router.HandleFunc("GET /api/userData", func(w http.ResponseWriter, r *http.Request) {
-		// middleware.Middleware()
-	})
+	router.Handle("GET /api/test", middleware.Middleware(db, middleware.CustomHandler(func(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
+		w.Write([]byte("OK"))
+	})))
 	return router
 }

@@ -16,13 +16,19 @@ import (
 type Client struct {
 	Conn     *websocket.Conn
 	Username string
+	UserId   int
 }
 
 type Message struct {
-	Type         string
-	Conn         *websocket.Conn
-	Sender       string
-	Receiver     string
+	Type   string
+	Sender struct {
+		Username string
+		Id       int
+	}
+	Receiver struct {
+		Username string
+		Id       int
+	}
 	Message      string
 	CreationDate string
 }
@@ -42,10 +48,10 @@ func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	client := Client{Conn: conn, Username: "Anonymous"}
 	fmt.Println(conn.RemoteAddr().String())
 	clients = append(clients, client)
-	go privateChat(conn)
+	go privateChat(conn, db)
 }
 
-func privateChat(conn *websocket.Conn) {
+func privateChat(conn *websocket.Conn, db *sql.DB) {
 	var message Message
 	defer conn.Close()
 	for {
@@ -55,13 +61,20 @@ func privateChat(conn *websocket.Conn) {
 			break
 		}
 		for _, client := range clients {
-			if client.Conn != conn {
+			if client.UserId == message.Receiver.Id {
 				if err = client.Conn.WriteJSON(message); err != nil {
 					fmt.Fprintln(os.Stderr, err)
+					break
 				}
+				CreateMessage(message, db)
+				break
 			}
 		}
 		// fmt.Println(string(p))
 	}
 	fmt.Printf("%s close the chat!\n", conn.RemoteAddr().String())
+}
+
+func CreateMessage(message Message, db *sql.DB) {
+	fmt.Println(message)
 }

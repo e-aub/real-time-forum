@@ -5,7 +5,7 @@ export class HomePage extends Page {
         super();
     }
     render(){
-        document.body.innerHTML = homeTemplate;
+        document.querySelector("#app").innerHTML = homeTemplate;
     }
 
 }

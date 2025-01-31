@@ -20,6 +20,19 @@ type RateLimiter struct {
 
 var UsersLimiters sync.Map
 
+func CleanupLimiters() {
+	for {
+		time.Sleep(time.Minute * 3)
+		UsersLimiters.Range(func(key, value interface{}) bool {
+			limiter := value.(*RateLimiter)
+			if time.Since(limiter.LastTime) >= time.Minute*3 {
+				UsersLimiters.Delete(key)
+			}
+			return true
+		})
+	}
+}
+
 func GetRateLimiter(userId int) *RateLimiter {
 	limiter, ok := UsersLimiters.Load(userId)
 	if !ok {

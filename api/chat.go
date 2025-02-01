@@ -16,19 +16,22 @@ import (
 type Client struct {
 	Conn     *websocket.Conn
 	Username string
-	UserId   int
+}
+
+type Status struct {
+	Online string
+	Offline string
+}
+
+type Req[T Message | Status] struct {
+	Type     string
+	Payload  T
 }
 
 type Message struct {
-	Type   string
-	Sender struct {
-		Username string
-		Id       int
-	}
-	Receiver struct {
-		Username string
-		Id       int
-	}
+	Type         string
+	Sender       string
+	Receiver     string
 	Message      string
 	CreationDate string
 }
@@ -61,7 +64,7 @@ func privateChat(conn *websocket.Conn, db *sql.DB) {
 			break
 		}
 		for _, client := range clients {
-			if client.UserId == message.Receiver.Id {
+			if client.Username == message.Receiver {
 				if err = client.Conn.WriteJSON(message); err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					break

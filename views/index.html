@@ -25,14 +25,8 @@
         if (socket.readyState === WebSocket.OPEN) {
             const data = {
                 type: "message",
-                sender: {
-                  id: 1,
-                  username: "yassinerahhaui"
-                },
-                receiver: {
-                  id: 2,
-                  username: "ayoub"
-                },
+                sender: "yassinerahhaui",
+                receiver: "ayoub",
                 message: message.value
             }
           socket.send(JSON.stringify(data))

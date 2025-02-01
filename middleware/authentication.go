@@ -41,6 +41,7 @@ func GetRateLimiter(userId int) *RateLimiter {
 	}
 	return limiter.(*RateLimiter)
 }
+
 func NewRateLimiter(userId, rate, capacity int, limiterTime time.Duration) *RateLimiter {
 	return &RateLimiter{
 		LastTime: time.Now(),

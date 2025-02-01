@@ -7,10 +7,26 @@ export class HomePage extends Page {
         this.postError = null;
     }
     async render(){
-        document.body.innerHTML = await ParseHomeTemplate();
-        this.overlay = document.querySelector('.overlay');
-        this.postError = document.querySelector('#create-post-error');
-        this.init();
+        // check if user is authenticated and return his data
+        try{
+            const  response = await fetch('/api/authenticated');
+            if (response.status == 200){
+                const data = await response.json();
+                document.body.innerHTML = ParseHomeTemplate(data);
+                this.overlay = document.querySelector('.overlay');
+                this.postError = document.querySelector('#create-post-error');
+                this.init();
+            }else if (response.status == 401){
+                this.navigate('/login');
+                return;
+            }else{
+                throw new Error('authentication error');
+            }
+        }catch(error){
+            document.body.innerHTML = error.message;
+        }
+
+    
     }
 
     init() {

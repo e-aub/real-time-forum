@@ -2,7 +2,7 @@ import { router } from "./router.js";
 
 class Page {
     navigate(path) {
-        router.go(path);
+        router.navigate(path);
     }
 }
 
@@ -140,9 +140,7 @@ const loginTemplate = `
                         <a href="/signup" class="home-link" id="sign-up-link">Create an account</a>
                     </div>
                 `;
-async function ParseHomeTemplate() {
-    let userData = await fetch('/api/userData').then(response => response.json()).catch(error => console.error(error));
-    
+function ParseHomeTemplate(userData) {    
     return `<div class="header">
                         <img class="logo" src="/static/images/logo.png" alt="talk" />
                         <div class="user-profile" onclick="toggleUserMenu()">

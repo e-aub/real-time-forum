@@ -71,8 +71,8 @@ func min(a int, b int) int {
 	return b
 }
 
-func Middleware(db *sql.DB, next CustomHandler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func Middleware(db *sql.DB, next CustomHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -110,5 +110,5 @@ func Middleware(db *sql.DB, next CustomHandler) http.Handler {
 			return
 		}
 		next(w, r, db, userId)
-	})
+	}
 }

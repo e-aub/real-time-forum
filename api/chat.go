@@ -39,7 +39,7 @@ var upgrader = websocket.Upgrader{
 }
 var clients []Client
 
-func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

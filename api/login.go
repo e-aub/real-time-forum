@@ -46,10 +46,12 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	pass_err := bcrypt.CompareHashAndPassword([]byte(hashed_pass), []byte(userData.Password))
 	if pass_err != nil {
+		fmt.Fprintln(os.Stderr, pass_err)
 		utils.JsonErr(w, http.StatusUnauthorized, "Invalid password")
 		return
 	}
 	if err = CreateSession(w, user_id, db); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
@@ -60,6 +62,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func CreateSession(w http.ResponseWriter, user_id int, db *sql.DB) error {
 	uid, token_err := uuid.NewV4()
 	if token_err != nil {
+		fmt.Fprintln(os.Stderr, token_err)
 		return token_err
 	}
 	query := `INSERT
@@ -69,6 +72,7 @@ func CreateSession(w http.ResponseWriter, user_id int, db *sql.DB) error {
 		ON CONFLICT(user_id) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at;`
 	_, err := db.Exec(query, &user_id, &uid, time.Now().Add(time.Hour*24))
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
 	http.SetCookie(w, &http.Cookie{

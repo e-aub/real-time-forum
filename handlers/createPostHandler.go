@@ -15,7 +15,7 @@ type Post struct {
 	Content    string   `json:"content"`
 }
 
-var Categories = []string{"funny", "cool", "help", "interesting", "random"}
+var Categories = []string{"funny", "entertainment", "help", "science", "random"}
 
 func CreatePostHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	var post Post

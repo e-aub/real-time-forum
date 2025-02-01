@@ -167,11 +167,11 @@ async function ParseHomeTemplate() {
                                         <textarea name="content" class="form-input" placeholder="What's on your mind, ${userData.firstname} ?" minlength="1" maxlength="1000" required></textarea>
                                     </div>
                                     <div class="categories">
-                                        <label for="politics">Politics
-                                        <input id="politics" type="checkbox" name="category" value="politics">
+                                        <label for="funny">Politics
+                                        <input id="funny" type="checkbox" name="category" value="funny">
                                         </label>
-                                        <label for="sports">Sports
-                                        <input id="sports" type="checkbox" name="category" value="sports">
+                                        <label for="help">Sports
+                                        <input id="help" type="checkbox" name="category" value="help">
                                         </label>
                                         <label for="science">Science
                                         <input id="science" type="checkbox" name="category" value="science">
@@ -179,7 +179,11 @@ async function ParseHomeTemplate() {
                                         <label for="entertainment">Entertainment
                                         <input id="entertainment" type="checkbox" name="category" value="entertainment">
                                         </label>
+                                        <label for="random">Random
+                                        <input id="random" type="checkbox" name="category" value="random">
+                                        </label>
                                     </div>
+                                    <div class="error-text" id="create-post-error"></div>
                                     <button type="submit" class="create-post-button">Post</button>
                                 </form>
                             </div>

@@ -140,26 +140,48 @@ const loginTemplate = `
                         <a href="/signup" class="home-link" id="sign-up-link">Create an account</a>
                     </div>
                 `;
-
-const homeTemplate =`<div class="header">
-                        <a href="/posts">Home</a>
+async function ParseHomeTemplate() {
+    let userData = await fetch('/api/userData').then(response => response.json()).catch(error => console.error(error));
+    
+    return `<div class="header">
                         <img class="logo" src="/static/images/logo.png" alt="talk" />
                         <div class="user-profile" onclick="toggleUserMenu()">
-                            <img src="/api/placeholder/40/40" alt="User" style="border-radius: 50%;" />
+                            <img src="${userData.avatar_url}" alt="User" class="user-avatar" />
                             <div class="profile-popup" id="profilePopup">
                                 <button class="logout-btn">Déconnexion</button>
                             </div>
                         </div>
                     </div>
-
+                    <div class="overlay hidden"></div>
                     <div class="container">
                         <div class="create-post">
                             <div class="create-post-body">
                                 <div class="create-post-input">
-                                    <img src="/api/placeholder/40/40" alt="User" />
-                                    <input type="text" placeholder="Quoi de neuf, Elhaddad ?" onclick="openCreatePost()" readonly />
+                                    <img src="${userData.avatar_url}" alt="User" class="user-avatar"/>
+                                    <input type="text" id="create-post-input" placeholder="What's on your mind, ${userData.firstname} ?" readonly />
                                 </div>
-
+                            </div>
+                            <div class="create-post-popup hidden">
+                                <form id="createPostForm">
+                                    <div class="form-group">
+                                        <textarea name="content" class="form-input" placeholder="What's on your mind, ${userData.firstname} ?" minlength="1" maxlength="1000" required></textarea>
+                                    </div>
+                                    <div class="categories">
+                                        <label for="politics">Politics
+                                        <input id="politics" type="checkbox" name="category" value="politics">
+                                        </label>
+                                        <label for="sports">Sports
+                                        <input id="sports" type="checkbox" name="category" value="sports">
+                                        </label>
+                                        <label for="science">Science
+                                        <input id="science" type="checkbox" name="category" value="science">
+                                        </label>
+                                        <label for="entertainment">Entertainment
+                                        <input id="entertainment" type="checkbox" name="category" value="entertainment">
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="create-post-button">Post</button>
+                                </form>
                             </div>
                         </div>
 
@@ -172,7 +194,7 @@ const homeTemplate =`<div class="header">
                         <h3>Contacts</h3>
                         <ul class="user-list">
                             <li class="user-item" onclick="openChat('Ziad Choukri')">
-                                <img src="/api/placeholder/36/36" alt="Ziad" />
+                                <img src="" alt="Ziad" class="user-avatar"/>
                                 <span>Ziad Choukri</span>
                                 <div class="online-indicator"></div>
                             </li>
@@ -191,5 +213,6 @@ const homeTemplate =`<div class="header">
                     <div class="chat-container">
                         <!-- Chat windows will be dynamically added here -->
                     </div>`;
+}
 
-export { Page, homeTemplate, loginTemplate, signUpTemplate };
+export { Page, ParseHomeTemplate, loginTemplate, signUpTemplate };

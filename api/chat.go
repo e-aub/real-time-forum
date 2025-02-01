@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"forum/utils"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -19,13 +21,13 @@ type Client struct {
 }
 
 type Status struct {
-	Online string
+	Online  string
 	Offline string
 }
 
 type Req[T Message | Status] struct {
-	Type     string
-	Payload  T
+	Type    string
+	Payload T
 }
 
 type Message struct {
@@ -51,10 +53,10 @@ func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) 
 	client := Client{Conn: conn, Username: "Anonymous"}
 	fmt.Println(conn.RemoteAddr().String())
 	clients = append(clients, client)
-	go privateChat(conn, db)
+	go privateChat(w, conn, db, userId)
 }
 
-func privateChat(conn *websocket.Conn, db *sql.DB) {
+func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId int) {
 	var message Message
 	defer conn.Close()
 	for {
@@ -67,17 +69,55 @@ func privateChat(conn *websocket.Conn, db *sql.DB) {
 			if client.Username == message.Receiver {
 				if err = client.Conn.WriteJSON(message); err != nil {
 					fmt.Fprintln(os.Stderr, err)
+					utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+					break
+				} else if len(message.Message) >= 500 {
+					utils.JsonErr(w, http.StatusBadRequest, "message length to much")
+					break
+				} else if len(message.Message) < 1 {
+					utils.JsonErr(w, http.StatusBadRequest, "message is empty")
 					break
 				}
-				CreateMessage(message, db)
+				if err = CreateMessage(message, db, userId); err != nil {
+					if err == sql.ErrNoRows {
+						utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
+						break
+					}
+					utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+					break
+				}
 				break
 			}
 		}
-		// fmt.Println(string(p))
 	}
 	fmt.Printf("%s close the chat!\n", conn.RemoteAddr().String())
 }
 
-func CreateMessage(message Message, db *sql.DB) {
-	fmt.Println(message)
+/*
+#---------- CreateMessage ----------#
+- get receiverId
+- validate message data
+- (add message to database and return nil) or (return err)
+*/
+func CreateMessage(msg Message, db *sql.DB, senderId int) error {
+	/*---------- get receiverId ----------*/
+	receiverId, err := getUserId(db, msg.Receiver)
+	if err != nil {
+		return err
+	}
+	/*---------- add message to database ----------*/
+	query := `INSERT INTO messages(sender_id,receiver_id,content) VALUES(?,?,?);`
+	_, err = db.Exec(query, &senderId, &receiverId, &msg.Message)
+	return err
+}
+
+/*
+#---------- getUserId ----------#
+- return userId or error
+*/
+func getUserId(db *sql.DB, username string) (int, error) {
+	var id int
+	query := `SELECT id FROM users WHERE (nickname = ?);`
+	err := db.QueryRow(query, &username).Scan(&id)
+	return id, err
 }

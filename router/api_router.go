@@ -23,8 +23,6 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("GET /api/userData", func(w http.ResponseWriter, r *http.Request) {
 		// middleware.Middleware()
 	})
-
-	router.Handle("/api/test", middleware.Middleware(db, func(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) { w.Write([]byte("test")) }))
-	router.Handle("/api/ws", middleware.Middleware(db, api.HandleConn))
+	router.HandleFunc("/api/ws", middleware.Middleware(db, api.HandleConn))
 	return router
 }

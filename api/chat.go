@@ -65,10 +65,11 @@ func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId
 			fmt.Fprintln(os.Stderr, err)
 			break
 		}
+		receiverOnline := false
 		for _, client := range clients {
 			if client.Username == message.Receiver {
+				receiverOnline = true
 				if err = client.Conn.WriteJSON(message); err != nil {
-					fmt.Fprintln(os.Stderr, err)
 					utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 					break
 				} else if len(message.Message) >= 500 {
@@ -89,6 +90,17 @@ func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId
 				break
 			}
 		}
+		if !receiverOnline {
+			if err = CreateMessage(message, db, userId); err != nil {
+				if err == sql.ErrNoRows {
+					utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
+					continue
+				}
+				utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+				continue
+			}
+		}
+
 	}
 	fmt.Printf("%s close the chat!\n", conn.RemoteAddr().String())
 }

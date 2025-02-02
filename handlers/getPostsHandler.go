@@ -18,7 +18,14 @@ func GetPosts(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 		utils.JsonErr(w, http.StatusBadRequest, "Invalid offset parameter")
 		return
 	}
-	rows, err := db.Query("SELECT posts.id, users.nickname, posts.content, posts.categories, posts.created_at FROM posts JOIN users ON posts.user_id = users.id LIMIT ? OFFSET ?", 10, offset)
+	rows, err := db.Query(`
+	SELECT posts.id, users.nickname, posts.content, posts.categories, posts.created_at
+	FROM posts
+	JOIN users ON posts.user_id = users.id
+	WHERE posts.id <= ?
+	ORDER BY posts.id DESC
+	LIMIT ?`, offset, 10)
+
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, "Failed to fetch posts")

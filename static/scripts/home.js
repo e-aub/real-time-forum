@@ -29,6 +29,7 @@ export class HomePage extends Page {
     init() {
         const createPostInput = document.getElementById('create-post-input');
         this.createPostPopup = document.querySelector('.create-post-popup');
+        const profilePopup = document.querySelector('.profile-popup');
 
         createPostInput.addEventListener('click', () => {
             this.toggleHidden([this.createPostPopup, this.overlay])
@@ -37,6 +38,18 @@ export class HomePage extends Page {
         this.overlay.addEventListener('click', (e) => this.toggleHidden([e.target, this.createPostPopup]));
 
         document.getElementById('createPostForm').addEventListener('submit', (e) => this.createPost(e));
+        document.querySelector(".user-profile").addEventListener('click', async (e) => {
+            if (e.target.classList.contains("logout-btn")){
+                await fetch('/api/logout', {
+                    method: 'POST'
+                }).then(response => {
+                    if (response.ok) {
+                        this.navigate('/login');
+                    }
+                })
+            }
+            this.toggleHidden([profilePopup])
+        });
     }
 
     toggleHidden(targets) {

@@ -19,9 +19,7 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 		api.Login(w, r, db)
 	})
 
-	// router.HandleFunc("POST /api/logout", func(w http.ResponseWriter, r *http.Request) {
-	// 	api.Logout(w, r, db)
-	// })
+	router.HandleFunc("POST /api/logout", middleware.Middleware(db, handlers.Logout))
 	router.HandleFunc("GET /api/max_post_id", middleware.Middleware(db, handlers.GetMaxPostId))
 	router.HandleFunc("GET /api/posts", middleware.Middleware(db, handlers.GetPosts))
 	router.HandleFunc("POST /api/create_post", middleware.Middleware(db, handlers.CreatePostHandler))

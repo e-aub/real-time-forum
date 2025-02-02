@@ -12,3 +12,9 @@ func JsonErr(w http.ResponseWriter, code int, message string) {
 		Message string `json:"message"`
 	}{Message: message})
 }
+
+func RespondWithJson(w http.ResponseWriter, code int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(payload)
+}

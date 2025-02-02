@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    title varchar(255),
     content varchar(1000),
     categories varchar(500),
     created_at TEXT NOT NULL DEFAULT current_timestamp,

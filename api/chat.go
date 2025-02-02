@@ -25,9 +25,14 @@ type Status struct {
 	Offline string
 }
 
-type Req[T Message | Status] struct {
+type Req[T Message | Status | WSError] struct {
 	Type    string
 	Payload T
+}
+type WSError struct {
+	Type    string
+	Status  int
+	Message string
 }
 
 type Message struct {

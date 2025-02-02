@@ -14,13 +14,13 @@ class Router {
 
     initialize() {
         window.addEventListener('popstate', () => this.route(location.pathname));
-        this.route(location.pathname, false); // Initial route
+        this.route(location.pathname); 
     }
 
     async isAuthenticated() {
         try {
             const response = await fetch('/api/authenticated');
-            return response.status === 200;
+            return response.status !== 401;
         } catch (error) {
             console.error('Auth check failed:', error);
             return false;
@@ -32,12 +32,15 @@ class Router {
         if (!route) return this.render404();
 
         const authenticated = await this.isAuthenticated();
-        if (!authenticated && routeName !== '/signup' && routeName !== '/login') {
-            return this.navigate('/login');
-        }
-
-        if (authenticated && routeName === '/login' || routeName === '/signup') {
-            return this.navigate('/');
+        if (!authenticated && routeName === '/') {
+            routeName = '/login';
+            this.routes[routeName].render();
+        }else if (authenticated && (routeName === '/login' || routeName === '/signup')) {
+            console.log("routeName");
+            routeName = '/';
+            this.routes[routeName].render();
+        }else{
+            this.routes[routeName].render();
         }
 
         if (updateHistory) {
@@ -47,7 +50,6 @@ class Router {
                 history.replaceState(null, null, routeName);
               }
         }
-        route.render();
     }
 
     navigate(routeName) {

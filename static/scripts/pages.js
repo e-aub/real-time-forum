@@ -140,7 +140,7 @@ const loginTemplate = `
                         <a href="/signup" class="home-link" id="sign-up-link">Create an account</a>
                     </div>
                 `;
-function ParseHomeTemplate(userData) {    
+async function ParseHomeTemplate(userData) {    
     return `<div class="header">
                         <img class="logo" src="/static/images/logo.png" alt="talk" />
                         <div class="user-profile" onclick="toggleUserMenu()">
@@ -165,10 +165,10 @@ function ParseHomeTemplate(userData) {
                                         <textarea name="content" class="form-input" placeholder="What's on your mind, ${userData.firstname} ?" minlength="1" maxlength="1000" required></textarea>
                                     </div>
                                     <div class="categories">
-                                        <label for="funny">Politics
+                                        <label for="funny">Funny
                                         <input id="funny" type="checkbox" name="category" value="funny">
                                         </label>
-                                        <label for="help">Sports
+                                        <label for="help">Help
                                         <input id="help" type="checkbox" name="category" value="help">
                                         </label>
                                         <label for="science">Science

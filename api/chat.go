@@ -15,52 +15,89 @@ import (
 	- [conn, sender, receiver, message, creation_date, type]
 */
 
+/*---------- user conn type ----------*/
 type Client struct {
 	Conn     *websocket.Conn
 	Username string
 }
 
+/*---------- status tracking type ----------*/
 type Status struct {
 	Online  string
 	Offline string
 }
 
+/*---------- request websocket types ----------*/
 type Req[T Message | Status | WSError] struct {
 	Type    string
 	Payload T
 }
+
+/*---------- handle users status ----------*/
 type WSError struct {
 	Type    string
 	Status  int
 	Message string
 }
 
+/*---------- messages type ----------*/
 type Message struct {
-	Type         string
 	Sender       string
 	Receiver     string
 	Message      string
 	CreationDate string
 }
 
+/*---------- upgrade connection from http to ws ----------*/
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
+
+/*---------- all users connection ----------*/
 var clients []Client
 
+/*
+#---------- HandleConn ----------#
+- handle connection.
+- save user connection.
+#--------------------------------#
+*/
 func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	client := Client{Conn: conn, Username: "Anonymous"}
+	username, user_err := getUsername(db, userId)
+	if user_err != nil {
+		if err == sql.ErrNoRows {
+			utils.JsonErr(w, http.StatusBadRequest, "invalid user")
+			return
+		}
+		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	client := Client{Conn: conn, Username: username}
 	fmt.Println(conn.RemoteAddr().String())
 	clients = append(clients, client)
 	go privateChat(w, conn, db, userId)
 }
 
+func getUsername(db *sql.DB, userId int) (string, error) {
+	var username string
+	query := `SELECT username FROM users WHERE id = ?;`
+	err := db.QueryRow(query, userId).Scan(&username)
+	return username, err
+}
+
+/*
+#---------- privateChat ----------#
+- read message
+- write message
+- save message
+#---------------------------------#
+*/
 func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId int) {
 	var message Message
 	defer conn.Close()
@@ -115,6 +152,7 @@ func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId
 - get receiverId
 - validate message data
 - (add message to database and return nil) or (return err)
+#-----------------------------------#
 */
 func CreateMessage(msg Message, db *sql.DB, senderId int) error {
 	/*---------- get receiverId ----------*/

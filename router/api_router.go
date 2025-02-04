@@ -14,11 +14,9 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /api/register", func(w http.ResponseWriter, r *http.Request) {
 		api.Register(w, r, db)
 	})
-
 	router.HandleFunc("POST /api/login", func(w http.ResponseWriter, r *http.Request) {
 		api.Login(w, r, db)
 	})
-
 	router.HandleFunc("POST /api/logout", middleware.Middleware(db, handlers.Logout))
 	router.HandleFunc("GET /api/max_post_id", middleware.Middleware(db, handlers.GetMaxPostId))
 	router.HandleFunc("GET /api/posts", middleware.Middleware(db, handlers.GetPosts))

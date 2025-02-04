@@ -23,13 +23,16 @@
         event.preventDefault();
         const message = document.querySelector("#message");
         if (socket.readyState === WebSocket.OPEN) {
+          const date = new Date()
             const data = {
-                type: "message",
                 sender: "yassinerahhaui",
-                receiver: "ayoub",
-                message: message.value
+                receiver: "Yrahhaou1",
+                message: message.value,
+                creationDate: date.toString()
             }
           socket.send(JSON.stringify(data))
+          console.log(data);
+          
           message.value = "";
         } else {
           console.error("WebSocket is not open. Ready state: " + socket.readyState);
@@ -38,7 +41,8 @@
 
       // Listen for messages
       socket.addEventListener("message", (event) => {
-        console.log("Message from server ", JSON.parse(event.data));
+        data = JSON.parse(event.data)
+        console.log(`Message from ${data.sender}`,data );
       });
     </script>
   </body>

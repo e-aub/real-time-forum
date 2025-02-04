@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"forum/utils"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -23,14 +21,14 @@ type Client struct {
 
 /*---------- status tracking type ----------*/
 type Status struct {
-	Online  string
-	Offline string
+	Online  string `json:"online"`
+	Offline string `json:"offline"`
 }
 
 /*---------- request websocket types ----------*/
 type Req[T Message | Status | WSError] struct {
-	Type    string
-	Payload T
+	Type    string `json:"type"`
+	Payload T      `json:"payload"`
 }
 
 /*---------- handle users status ----------*/
@@ -42,10 +40,10 @@ type WSError struct {
 
 /*---------- messages type ----------*/
 type Message struct {
-	Sender       string
-	Receiver     string
-	Message      string
-	CreationDate string
+	Sender       string `json:"sender"`
+	Receiver     string `json:"receiver"`
+	Message      string `json:"message"`
+	CreationDate string `json:"creation_date"`
 }
 
 /*---------- upgrade connection from http to ws ----------*/
@@ -69,36 +67,25 @@ func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) 
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	username, user_err := getUsername(db, userId)
-	if user_err != nil {
-		if err == sql.ErrNoRows {
-			utils.JsonErr(w, http.StatusBadRequest, "invalid user")
-			return
-		}
-		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	username, err := getUsername(db, userId)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "invalid username!")
 		return
 	}
 	client := Client{Conn: conn, Username: username}
 	fmt.Println(conn.RemoteAddr().String())
 	clients = append(clients, client)
-	go privateChat(w, conn, db, userId)
+	go privateChat(conn, db, userId)
 }
 
 func getUsername(db *sql.DB, userId int) (string, error) {
 	var username string
-	query := `SELECT username FROM users WHERE id = ?;`
-	err := db.QueryRow(query, userId).Scan(&username)
+	query := `SELECT nickname FROM users WHERE id = ?;`
+	err := db.QueryRow(query, &userId).Scan(&username)
 	return username, err
 }
 
-/*
-#---------- privateChat ----------#
-- read message
-- write message
-- save message
-#---------------------------------#
-*/
-func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId int) {
+func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
 	var message Message
 	defer conn.Close()
 	for {
@@ -112,21 +99,26 @@ func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId
 			if client.Username == message.Receiver {
 				receiverOnline = true
 				if err = client.Conn.WriteJSON(message); err != nil {
-					utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+					fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+					// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 					break
 				} else if len(message.Message) >= 500 {
-					utils.JsonErr(w, http.StatusBadRequest, "message length to much")
+					fmt.Fprintln(os.Stderr, "message length to much")
+					// utils.JsonErr(w, http.StatusBadRequest, "message length to much")
 					break
 				} else if len(message.Message) < 1 {
-					utils.JsonErr(w, http.StatusBadRequest, "message is empty")
+					fmt.Fprintln(os.Stderr, "message is empty")
+					// utils.JsonErr(w, http.StatusBadRequest, "message is empty")
 					break
 				}
 				if err = CreateMessage(message, db, userId); err != nil {
 					if err == sql.ErrNoRows {
-						utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
+						fmt.Fprintln(os.Stderr, "invalid receiver name")
+						// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
 						break
 					}
-					utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+					fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+					// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 					break
 				}
 				break
@@ -135,10 +127,12 @@ func privateChat(w http.ResponseWriter, conn *websocket.Conn, db *sql.DB, userId
 		if !receiverOnline {
 			if err = CreateMessage(message, db, userId); err != nil {
 				if err == sql.ErrNoRows {
-					utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
+					fmt.Fprintln(os.Stderr, "invalid receiver name")
+					// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
 					continue
 				}
-				utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+				fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+				// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 				continue
 			}
 		}

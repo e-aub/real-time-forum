@@ -12,11 +12,14 @@ import (
 )
 
 type Post struct {
-	Categories []string `json:"categories"`
-	Content    string   `json:"content"`
-	CreatedAt  string   `json:"created_at"`
-	UserName   string   `json:"user_name"`
 	PostId     int      `json:"post_id"`
+	Avatar     string   `json:"avatar"`
+	FirstName  string   `json:"first_name"`
+	LastName   string   `json:"last_name"`
+	UserName   string   `json:"user_name"`
+	Content    string   `json:"content"`
+	Categories []string `json:"categories"`
+	CreatedAt  string   `json:"created_at"`
 }
 
 var Categories = []string{"funny", "entertainment", "help", "science", "random"}
@@ -34,13 +37,20 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, userI
 		return
 	}
 
-	_, err := db.Exec("INSERT INTO posts (user_id, categories, content) VALUES (?, ?, ?)", userId, strings.Join(post.Categories, "|"), post.Content)
+	res, err := db.Exec("INSERT INTO posts (user_id, categories, content) VALUES (?, ?, ?)", userId, strings.Join(post.Categories, "|"), post.Content)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	postId, err := res.LastInsertId()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	utils.RespondWithJson(w, http.StatusCreated, map[string]int{"post_id": int(postId)})
 }
 
 func validatePost(post Post) error {

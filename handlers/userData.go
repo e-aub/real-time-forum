@@ -6,7 +6,6 @@ import (
 	"forum/utils"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type UserData struct {
@@ -17,8 +16,6 @@ type UserData struct {
 	Avatar    string `json:"avatar_url"`
 }
 
-const imageApi = "https://avatar.iran.liara.run/username?username=%s+%s"
-
 func UserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	var UserData UserData
 	err := db.QueryRow(`SELECT email, nickname, firstname, lastname FROM users WHERE id = ?`, userId).Scan(&UserData.Email, &UserData.Nickname, &UserData.Firstname, &UserData.Lastname)
@@ -28,6 +25,6 @@ func UserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, userId 
 		return
 	}
 
-	UserData.Avatar = fmt.Sprintf(imageApi, strings.ReplaceAll(UserData.Firstname, " ", ""), strings.ReplaceAll(UserData.Firstname, " ", ""))
+	UserData.Avatar = utils.CreateUserAvatar(UserData.Firstname, UserData.Lastname)
 	utils.RespondWithJson(w, http.StatusOK, UserData)
 }

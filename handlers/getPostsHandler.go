@@ -19,7 +19,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 		return
 	}
 	rows, err := db.Query(`
-	SELECT posts.id, users.nickname, posts.content, posts.categories, posts.created_at
+	SELECT posts.id, users.nickname, users.firstname, users.lastname, posts.content, posts.categories, posts.created_at
 	FROM posts
 	JOIN users ON posts.user_id = users.id
 	WHERE posts.id <= ?
@@ -36,13 +36,14 @@ func GetPosts(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	for rows.Next() {
 		var post Post
 		var categoriesStr string
-		if err := rows.Scan(&post.PostId, &post.UserName, &post.Content, &categoriesStr, &post.CreatedAt); err != nil {
+		if err := rows.Scan(&post.PostId, &post.UserName, &post.FirstName, &post.LastName, &post.Content, &categoriesStr, &post.CreatedAt); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
 
 		post.Categories = strings.Split(categoriesStr, "|")
+		post.Avatar = utils.CreateUserAvatar(post.FirstName, post.LastName)
 		posts = append(posts, post)
 	}
 

@@ -204,10 +204,6 @@ async function ParseHomeTemplate(userData) {
                     </div>
 
                     <!-- Modals -->
-                    <div class="modal" id="createPostModal">
-                        <!-- Create post modal content -->
-                    </div>
-
                     <div class="modal comments-modal" id="commentsModal">
                         <!-- Comments modal content -->
                     </div>

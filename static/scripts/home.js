@@ -6,6 +6,7 @@ export class HomePage extends Page {
         this.overlay = null;
         this.createPostPopup = null;
         this.maxId = null;
+        this.userData = null;
     }
 
     async render() {
@@ -13,6 +14,7 @@ export class HomePage extends Page {
             const response = await fetch("/api/authenticated");
             if (response.ok) {
                 const data = await response.json();
+                this.userData = data;
                 document.body.innerHTML = await ParseHomeTemplate(data);
                 this.overlay = document.querySelector(".overlay");
                 this.init();
@@ -84,16 +86,27 @@ export class HomePage extends Page {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content, categories })
             });
+            let jsonResponse = await response.json();
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Create post error");
+                throw new Error(jsonResponse.message || "Create post error");
             }
 
             console.log("Post created successfully");
             form.reset();
+            const postData = {
+                post_id: jsonResponse.post_id,
+                content: content,
+                categories: categories,
+                first_name: this.userData.firstname,
+                last_name: this.userData.lastname,
+                avatar: this.userData.avatar_url,
+                created_at: new Date(),
+            };
+            const postElem = this.createPostElement(postData);
+            document.querySelector(".posts-feed")?.prepend(postElem);
             this.toggleHidden([this.createPostPopup, this.overlay]);
-            this.getPosts();
+
         } catch (error) {
             this.displayError(error.message);
         }
@@ -118,9 +131,10 @@ export class HomePage extends Page {
         return true;
     }
 
-    // displayError(message) {
-    //     document.querySelector(".error-text")?.textContent = message;
-    // }
+    displayError(message) {
+        let errDiv = document.querySelector(".error-text");
+        errDiv.textContent = message;
+    }
 
     createPostElement(post) {
         const postElement = document.createElement("article");
@@ -128,9 +142,9 @@ export class HomePage extends Page {
         postElement.id = `post-${post.post_id}`;
         postElement.innerHTML = `
             <div class="post-header">
-                <img src="${post.avatar || "/default-avatar.jpg"}" alt="${post.user_name}'s avatar">
+                <img src="${post.avatar}" alt="${post.user_name}'s avatar">
                 <div class="post-header-info">
-                    <h4>${post.user_name}</h4>
+                    <h4>${post.first_name} ${post.last_name}</h4>
                     <div class="post-time">${this.formatTimestamp(post.created_at)}</div>
                 </div>
                 <div class="categories-container">
@@ -148,6 +162,7 @@ export class HomePage extends Page {
 
     formatTimestamp(timestamp) {
         const date = new Date(timestamp);
+        date.setTime(date.getTime() + 3600000)
         const diff = Math.floor((Date.now() - date) / 1000);
         if (diff < 60) return "Just now";
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;

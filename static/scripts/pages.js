@@ -195,9 +195,9 @@ async function ParseHomeTemplate(userData) {
                     <div class="online-users">
                         <h3>Contacts</h3>
                         <ul class="user-list">
-                            <li class="user-item" onclick="openChat('Ziad Choukri')">
-                                <img src="" alt="Ziad" class="user-avatar"/>
-                                <span>Ziad Choukri</span>
+                            <li class="user-item" onclick="openChat('Shiffu zaml')">
+                                <img src="" alt="Shiffu" class="user-avatar"/>
+                                <span>Shiffu zaml</span>
                                 <div class="online-indicator"></div>
                             </li>
                         </ul>

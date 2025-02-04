@@ -5,253 +5,175 @@ export class HomePage extends Page {
         super();
         this.overlay = null;
         this.createPostPopup = null;
+        this.maxId = null;
     }
 
     async render() {
         try {
-            const response = await fetch('/api/authenticated');
-            if (response.status === 200) {
+            const response = await fetch("/api/authenticated");
+            if (response.ok) {
                 const data = await response.json();
                 document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
                 this.overlay = document.querySelector('.overlay');
                 this.init();
             } else if (response.status === 401) {
-                this.navigate('/login');
-                return;
+                this.navigate("/login");
             } else {
-                throw new Error('Authentication error');
+                throw new Error("Authentication error");
             }
         } catch (error) {
             document.querySelector("#app").innerHTML = error.message;
         }
     }
 
-    init() {
-        const createPostInput = document.getElementById('create-post-input');
-        this.createPostPopup = document.querySelector('.create-post-popup');
-        const profilePopup = document.querySelector('.profile-popup');
+    async init() {
+        try {
+            const resp = await fetch("/api/max_post_id");
+            if (!resp.ok) throw new Error("Error fetching max post ID");
+            const data = await resp.json();
+            this.maxId = data.max_post_id;
+        } catch (err) {
+            console.error(err);
+        }
 
-        createPostInput.addEventListener('click', () => {
-            this.toggleHidden([this.createPostPopup, this.overlay])
-            this.createPostPopup.querySelector('.form-input').focus();
+        this.createPostPopup = document.querySelector(".create-post-popup");
+        this.setupEventListeners();
+        this.getPosts();
+    }
+
+    setupEventListeners() {
+        document.getElementById("create-post-input")?.addEventListener("click", () => {
+            this.toggleHidden([this.createPostPopup, this.overlay]);
+            this.createPostPopup.querySelector(".form-input")?.focus();
         });
-        this.overlay.addEventListener('click', (e) => this.toggleHidden([e.target, this.createPostPopup]));
 
-        document.getElementById('createPostForm').addEventListener('submit', (e) => this.createPost(e));
-        document.querySelector(".user-profile").addEventListener('click', async (e) => {
-            if (e.target.classList.contains("logout-btn")){
-                await fetch('/api/logout', {
-                    method: 'POST'
-                }).then(response => {
-                    if (response.ok) {
-                        this.navigate('/login');
-                    }
-                })
+        this.overlay?.addEventListener("click", (e) => {
+            if (e.target === this.overlay) this.toggleHidden([this.overlay, this.createPostPopup]);
+        });
+
+        document.getElementById("createPostForm")?.addEventListener("submit", (e) => this.createPost(e));
+
+        document.querySelector(".user-profile")?.addEventListener("click", async (e) => {
+            if (e.target.classList.contains("logout-btn")) {
+                try {
+                    const response = await fetch("/api/logout", { method: "POST" });
+                    if (response.ok) this.navigate("/login");
+                } catch (error) {
+                    this.displayError("Logout failed.");
+                }
             }
-            this.toggleHidden([profilePopup])
+            this.toggleHidden([document.querySelector(".profile-popup")]);
         });
     }
 
-    toggleHidden(targets) {
-        for (const target of targets) {
-            target.classList.toggle('hidden');
-        }
+    toggleHidden(elements) {
+        elements.forEach(el => el?.classList.toggle("hidden"));
     }
 
     async createPost(event) {
         event.preventDefault();
+        const form = event.target;
+        const content = form.querySelector(".form-input")?.value.trim();
+        const categories = this.getSelectedCategories(form);
 
-        const content = event.target.querySelector('.form-input').value;
-        const selectedCategories = this.getSelectedCategories(event.target);
-
-        if (!this.isValidPost(content, selectedCategories)) {
-            return;
-        }
-
-        const data = {
-            content: content,
-            categories: selectedCategories
-        };
+        if (!this.isValidPost(content, categories)) return;
 
         try {
-            const response = await this.sendCreatePostRequest(data);
+            const response = await fetch("/api/create_post", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content, categories })
+            });
 
             if (!response.ok) {
-                if (response.status === 400) {
-                    const errorData = await response.json();
-                    this.displayError(errorData.message);
-                } else {
-                    throw new Error('Create post error');
-                }
-            } else {
-                console.log("Post created successfully");
-                event.target.reset();
-                this.toggleHidden([this.createPostPopup, this.overlay]);
-                //EXEMPLE
-                const postData = {
-                    id: '123',
-                    author: {
-                        name: 'John Doe',
-                        avatar: '/path/to/avatar.jpg'
-                    },
-                    content: 'This is my first post!',
-                    timestamp: new Date(),
-                    categories: ['Politics', 'Science', 'Help', 'Funny', 'Entertainment']
-                };
-
-                // Create and append post
-                const postElement = this.createPostElement(postData);
-                document.querySelector('.posts-feed').appendChild(postElement);
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Create post error");
             }
+
+            console.log("Post created successfully");
+            form.reset();
+            this.toggleHidden([this.createPostPopup, this.overlay]);
+            this.getPosts();
         } catch (error) {
-            console.error(error);
-            this.displayError("Something went wrong while creating the post.");
+            this.displayError(error.message);
         }
     }
 
     getSelectedCategories(form) {
-        const selectedCategories = [];
-        form.querySelectorAll('input[name="category"]:checked').forEach(checkbox => {
-            selectedCategories.push(checkbox.value);
-        });
-        return selectedCategories;
+        return [...form.querySelectorAll("input[name='category']:checked")].map(cb => cb.value);
     }
 
+    isValidPost(content, categories) {
+        const errorElement = document.querySelector(".error-text");
+        errorElement.textContent = "";
 
-    isValidPost(content, selectedCategories) {
-        let valid = true;
-        const errorMessageElement = document.querySelector('.error-text');
-        errorMessageElement.textContent = '';
-
-        if (!content.trim()) {
-            valid = false;
-            errorMessageElement.textContent = 'Content cannot be empty.';
+        if (!content) {
+            errorElement.textContent = "Content cannot be empty.";
+            return false;
         }
-
-        if (selectedCategories.length === 0) {
-            valid = false;
-            errorMessageElement.textContent = errorMessageElement.textContent
-                ? errorMessageElement.textContent + ' At least one category must be selected.'
-                : 'At least one category must be selected.';
+        if (categories.length === 0) {
+            errorElement.textContent = "At least one category must be selected.";
+            return false;
         }
-
-        return valid;
+        return true;
     }
 
-    async sendCreatePostRequest(data) {
-        return await fetch('api/create_post', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-    }
+    // displayError(message) {
+    //     document.querySelector(".error-text")?.textContent = message;
+    // }
 
-    displayError(message) {
-        const errorElement = document.querySelector('.error-text');
-        errorElement.textContent = message;
-    }
-
-
-
-
-    ///////////////////////////////////////////////////
-
-    createPostElement(postData) {
-        const postElement = document.createElement('article');
-        postElement.className = 'post';
-        postElement.id = `post-${postData.id}`;
-    
-        const header = document.createElement('div');
-        header.className = 'post-header';
-    
-        const avatar = document.createElement('img');
-        avatar.src = postData.author.avatar || '/default-avatar.jpg';
-        avatar.alt = `${postData.author.name}'s avatar`;
-        header.appendChild(avatar);
-    
-        const headerInfo = document.createElement('div');
-        headerInfo.className = 'post-header-info';
-    
-        const authorName = document.createElement('h4');
-        authorName.textContent = postData.author.name;
-        headerInfo.appendChild(authorName);
-    
-        const timeElement = document.createElement('div');
-        timeElement.className = 'post-time';
-        timeElement.textContent = this.formatTimestamp(postData.timestamp);
-        headerInfo.appendChild(timeElement);
-    
-        header.appendChild(headerInfo);
-    
-        if (postData.categories && postData.categories.length > 0) {
-            const categoriesContainer = document.createElement('div');
-            categoriesContainer.className = 'categories-container';
-    
-            postData.categories.forEach(category => {
-                const categoryTag = document.createElement('span');
-                categoryTag.className = `category-tag ${category.toLowerCase()}`;
-                categoryTag.textContent = category;
-                categoriesContainer.appendChild(categoryTag);
-            });
-    
-            header.appendChild(categoriesContainer);
-        }
-    
-        const content = document.createElement('div');
-        content.className = 'post-content';
-        content.textContent = postData.content;
-    
-        const actions = document.createElement('div');
-        actions.className = 'post-actions';
-    
-        const likeAction = this.createAction('Like', '👍');
-        likeAction.addEventListener('click', () => this.handleLike(postData.id));
-    
-        const commentAction = this.createAction('Comment', '💬');
-        commentAction.addEventListener('click', () => this.handleComment(postData.id));
-    
-        actions.appendChild(likeAction);
-        actions.appendChild(commentAction);
-    
-        postElement.appendChild(header);
-        postElement.appendChild(content);
-        postElement.appendChild(actions);
-    
+    createPostElement(post) {
+        const postElement = document.createElement("article");
+        postElement.className = "post";
+        postElement.id = `post-${post.post_id}`;
+        postElement.innerHTML = `
+            <div class="post-header">
+                <img src="${post.avatar || "/default-avatar.jpg"}" alt="${post.user_name}'s avatar">
+                <div class="post-header-info">
+                    <h4>${post.user_name}</h4>
+                    <div class="post-time">${this.formatTimestamp(post.created_at)}</div>
+                </div>
+                <div class="categories-container">
+                    ${post.categories.map(cat => `<span class="category-tag ${cat.toLowerCase()}">${cat}</span>`).join(" ")}
+                </div>
+            </div>
+            <pre class="post-content">${post.content}</pre>
+            <div class="post-actions">
+                <button class="post-action" onclick="handleLike('${post.post_id}')">👍 Like</button>
+                <button class="post-action" onclick="handleComment('${post.post_id}')">💬 Comment</button>
+            </div>
+        `;
         return postElement;
-    }
-
-    createAction(text, icon) {
-        const action = document.createElement('button');
-        action.className = 'post-action';
-        action.innerHTML = `${icon} ${text}`;
-        return action;
     }
 
     formatTimestamp(timestamp) {
         const date = new Date(timestamp);
-        const now = new Date();
-        const diffInSeconds = Math.floor((now - date) / 1000);
+        const diff = Math.floor((Date.now() - date) / 1000);
+        if (diff < 60) return "Just now";
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return date.toLocaleDateString();
+    }
 
-        if (diffInSeconds < 60) {
-            return 'Just now';
-        } else if (diffInSeconds < 3600) {
-            const minutes = Math.floor(diffInSeconds / 60);
-            return `${minutes}m ago`;
-        } else if (diffInSeconds < 86400) {
-            const hours = Math.floor(diffInSeconds / 3600);
-            return `${hours}h ago`;
-        } else {
-            return date.toLocaleDateString();
+    async getPosts() {
+        try {
+            const queryParams = new URLSearchParams({ offset: this.maxId });
+            const response = await fetch(`/api/posts?${queryParams}`);
+            if (!response.ok) throw new Error("Error fetching posts");
+            const posts = await response.json();
+            posts.forEach(post => {
+                document.querySelector(".posts-feed")?.appendChild(this.createPostElement(post));
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
+}
 
-    handleLike(postId) {
-        console.log(`Liked post ${postId}`);
-    }
+function handleLike(postId) {
+    console.log(`Liked post ${postId}`);
+}
 
-    handleComment(postId) {
-        console.log(`Comment on post ${postId}`);
-    }
+function handleComment(postId) {
+    console.log(`Comment on post ${postId}`);
 }

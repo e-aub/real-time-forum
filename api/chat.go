@@ -86,32 +86,33 @@ func getUsername(db *sql.DB, userId int) (string, error) {
 }
 
 func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
-	var message Message
+	var req Req[Message]
+	req.Type = `message`
 	defer conn.Close()
 	for {
-		err := conn.ReadJSON(&message)
+		err := conn.ReadJSON(&req)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			break
 		}
 		receiverOnline := false
 		for _, client := range clients {
-			if client.Username == message.Receiver {
+			if client.Username == req.Payload.Receiver {
 				receiverOnline = true
-				if err = client.Conn.WriteJSON(message); err != nil {
+				if err = client.Conn.WriteJSON(req); err != nil {
 					fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
 					// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 					break
-				} else if len(message.Message) >= 500 {
+				} else if len(req.Payload.Message) >= 500 {
 					fmt.Fprintln(os.Stderr, "message length to much")
 					// utils.JsonErr(w, http.StatusBadRequest, "message length to much")
 					break
-				} else if len(message.Message) < 1 {
+				} else if len(req.Payload.Message) < 1 {
 					fmt.Fprintln(os.Stderr, "message is empty")
 					// utils.JsonErr(w, http.StatusBadRequest, "message is empty")
 					break
 				}
-				if err = CreateMessage(message, db, userId); err != nil {
+				if err = SaveMessage(req.Payload, db, userId); err != nil {
 					if err == sql.ErrNoRows {
 						fmt.Fprintln(os.Stderr, "invalid receiver name")
 						// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
@@ -125,7 +126,7 @@ func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
 			}
 		}
 		if !receiverOnline {
-			if err = CreateMessage(message, db, userId); err != nil {
+			if err = SaveMessage(req.Payload, db, userId); err != nil {
 				if err == sql.ErrNoRows {
 					fmt.Fprintln(os.Stderr, "invalid receiver name")
 					// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
@@ -141,6 +142,8 @@ func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
 	fmt.Printf("%s close the chat!\n", conn.RemoteAddr().String())
 }
 
+func WriteMessage(client Client, msg string) {}
+
 /*
 #---------- CreateMessage ----------#
 - get receiverId
@@ -148,7 +151,7 @@ func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
 - (add message to database and return nil) or (return err)
 #-----------------------------------#
 */
-func CreateMessage(msg Message, db *sql.DB, senderId int) error {
+func SaveMessage(msg Message, db *sql.DB, senderId int) error {
 	/*---------- get receiverId ----------*/
 	receiverId, err := getUserId(db, msg.Receiver)
 	if err != nil {

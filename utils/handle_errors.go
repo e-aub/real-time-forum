@@ -18,3 +18,5 @@ func RespondWithJson(w http.ResponseWriter, code int, payload any) {
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(payload)
 }
+
+

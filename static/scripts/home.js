@@ -12,7 +12,7 @@ export class HomePage extends Page {
             const response = await fetch('/api/authenticated');
             if (response.status === 200) {
                 const data = await response.json();
-                document.body.innerHTML = await ParseHomeTemplate(data);
+                document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
                 this.overlay = document.querySelector('.overlay');
                 this.init();
             } else if (response.status === 401) {
@@ -22,7 +22,7 @@ export class HomePage extends Page {
                 throw new Error('Authentication error');
             }
         } catch (error) {
-            document.body.innerHTML = error.message;
+            document.querySelector("#app").innerHTML = error.message;
         }
     }
 

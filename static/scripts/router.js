@@ -45,7 +45,7 @@ class Router {
 
         if (updateHistory) {
             if (window.history.length > 1) {
-                history.pushState(null, null, routeName);
+                  history.pushState(null, null, routeName);
               } else {
                 history.replaceState(null, null, routeName);
               }

@@ -6,4 +6,12 @@ install:
 
 initdb:
 	@sqlite3 forum.db < ./models/initdb.sql
+
+pull:
+	@git pull github
+	@git pull gitea
+
+push:
+	@git push github
+	@git push gitea
 	

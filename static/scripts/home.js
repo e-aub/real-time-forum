@@ -14,9 +14,14 @@ export class HomePage extends Page {
             const response = await fetch("/api/authenticated");
             if (response.ok) {
                 const data = await response.json();
+<<<<<<< HEAD
                 this.userData = data;
                 document.body.innerHTML = await ParseHomeTemplate(data);
                 this.overlay = document.querySelector(".overlay");
+=======
+                document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
+                this.overlay = document.querySelector('.overlay');
+>>>>>>> 8afe81463371051728cfd7d4a0bd50c7eba7755f
                 this.init();
             } else if (response.status === 401) {
                 this.navigate("/login");
@@ -24,7 +29,7 @@ export class HomePage extends Page {
                 throw new Error("Authentication error");
             }
         } catch (error) {
-            console.error("Authentication error:", error);
+            document.querySelector("#app").innerHTML = error.message;
         }
     }
 

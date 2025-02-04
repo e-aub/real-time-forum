@@ -92,7 +92,6 @@ func Middleware(db *sql.DB, next CustomHandler) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
 		expiresAt, err := time.Parse("2006-01-02 15:04:05.999999999Z07:00", expiresAtStr)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

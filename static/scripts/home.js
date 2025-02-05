@@ -14,15 +14,10 @@ export class HomePage extends Page {
             const response = await fetch("/api/authenticated");
             if (response.ok) {
                 const data = await response.json();
-<<<<<<< HEAD
                 this.userData = data;
-                document.body.innerHTML = await ParseHomeTemplate(data);
-                this.overlay = document.querySelector(".overlay");
-=======
                 document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
-                this.overlay = document.querySelector('.overlay');
->>>>>>> 8afe81463371051728cfd7d4a0bd50c7eba7755f
-                this.init();
+                this.overlay = document.querySelector(".overlay");
+                await this.init();
             } else if (response.status === 401) {
                 this.navigate("/login");
             } else {
@@ -39,13 +34,14 @@ export class HomePage extends Page {
             if (!resp.ok) throw new Error("Error fetching max post ID");
             const data = await resp.json();
             this.maxId = data.max_post_id;
+            
         } catch (err) {
             console.error(err);
         }
 
         this.createPostPopup = document.querySelector(".create-post-popup");
-        this.setupEventListeners();
         this.getPosts();
+        this.setupEventListeners();
     }
 
     setupEventListeners() {
@@ -71,7 +67,33 @@ export class HomePage extends Page {
             }
             this.toggleHidden([document.querySelector(".profile-popup")]);
         });
+
+        let throttledGetPosts = this.throttle(this.getPosts.bind(this), 500)
+        document.addEventListener("scroll", ()=>{
+            
+            if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 10){
+                if(this.maxId <= 0){
+                    console.log("no more posts to show");
+                    return
+                }
+                console.log("SCROLL EVENT");
+                throttledGetPosts();
+            }
+        })
     }
+
+    throttle(func, limit) {
+        let inThrottle = false
+        return (...args) => {          
+            if (!inThrottle) {
+                func.apply(args)
+                inThrottle = true
+                setTimeout(()=>{inThrottle = false}, limit)
+            }
+        }
+    }
+
+
 
     toggleHidden(elements) {
         elements.forEach(el => el?.classList.toggle("hidden"));
@@ -177,13 +199,20 @@ export class HomePage extends Page {
 
     async getPosts() {
         try {
+            console.log(this.maxId);
             const queryParams = new URLSearchParams({ offset: this.maxId });
             const response = await fetch(`/api/posts?${queryParams}`);
-            if (!response.ok) throw new Error("Error fetching posts");
+            if (!response.ok){
+                if (response.status == 404){
+                    throw new Error("no more posts to show");
+                }
+                throw new Error("Error fetching posts");
+            }
             const posts = await response.json();
             posts.forEach(post => {
                 document.querySelector(".posts-feed")?.appendChild(this.createPostElement(post));
             });
+            this.maxId = this.maxId - posts.length;
         } catch (error) {
             console.error(error);
         }

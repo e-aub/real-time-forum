@@ -173,7 +173,7 @@ export class SignupPage extends Page {
     }
 
     render() {
-        document.body.innerHTML = signUpTemplate;
+        document.querySelector("#app").innerHTML = signUpTemplate;
 
         const form = document.getElementById('signupForm');
         const inputs = form.querySelectorAll('input, select');

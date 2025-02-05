@@ -14,7 +14,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	var posts []Post
 	offsetStr := r.URL.Query().Get("offset")
 	offset, err := strconv.Atoi(offsetStr)
-	if err != nil {
+	if err != nil || offset <= 0 {
 		utils.JsonErr(w, http.StatusBadRequest, "Invalid offset parameter")
 		return
 	}

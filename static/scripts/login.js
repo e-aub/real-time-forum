@@ -116,7 +116,7 @@ export class LoginPage extends Page {
     }
 
     render() {
-        document.body.innerHTML = loginTemplate;
+        document.querySelector("#app").innerHTML = loginTemplate;
         const form = document.getElementById('loginForm');
         const emailInput = form.querySelector('input[name="login_name"]');
         const passwordInput = form.querySelector('input[name="password"]');

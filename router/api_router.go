@@ -22,6 +22,6 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("GET /api/posts", middleware.Middleware(db, handlers.GetPosts))
 	router.HandleFunc("POST /api/create_post", middleware.Middleware(db, handlers.CreatePostHandler))
 	router.Handle("GET /api/authenticated", middleware.Middleware(db, handlers.UserDataHandler))
-	router.HandleFunc("/api/ws", middleware.Middleware(db, api.HandleConn))
+	router.HandleFunc("/api/ws", middleware.Middleware(db, api.Upgrade))
 	return router
 }

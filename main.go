@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"forum/api"
 	"forum/handlers"
 	"forum/middleware"
 	"forum/router"
@@ -22,10 +23,14 @@ func main() {
 	if db_err != nil {
 		log.Fatal(db_err.Error())
 	}
+
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter(db))
 	mainMux.Handle("/", router.WebRouter())
 	mainMux.HandleFunc("/ws", handlers.Test)
+
+	go api.Hub.Run()
+
 	go middleware.CleanupLimiters()
 
 	fmt.Printf("Server running in 'http://localhost%s'\n", port)

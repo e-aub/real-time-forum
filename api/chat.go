@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -53,7 +54,12 @@ var upgrader = websocket.Upgrader{
 }
 
 /*---------- all users connection ----------*/
-var clients []Client
+var (
+	clients = map[string][]Client{}
+	mu      sync.Mutex
+)
+
+// var clients sync.Map
 
 /*
 #---------- HandleConn ----------#
@@ -73,9 +79,10 @@ func HandleConn(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) 
 		return
 	}
 	client := Client{Conn: conn, Username: username}
-	fmt.Println(conn.RemoteAddr().String())
-	clients = append(clients, client)
-	go privateChat(conn, db, userId)
+	mu.Lock()
+	clients[username] = append(clients[username], client)
+	mu.Unlock()
+	go privateChat(conn, db, userId, username)
 }
 
 func getUsername(db *sql.DB, userId int) (string, error) {
@@ -85,64 +92,78 @@ func getUsername(db *sql.DB, userId int) (string, error) {
 	return username, err
 }
 
-func privateChat(conn *websocket.Conn, db *sql.DB, userId int) {
+func privateChat(conn *websocket.Conn, db *sql.DB, userId int, username string) {
 	var req Req[Message]
 	req.Type = `message`
 	defer conn.Close()
 	for {
 		err := conn.ReadJSON(&req)
 		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				fmt.Fprintln(os.Stderr, "Unexpected close error!")
+			} else {
+				fmt.Fprintln(os.Stderr, "Connection closed!")
+			}
+			removeConn(conn, username)
 			fmt.Fprintln(os.Stderr, err)
-			break
+			return
 		}
-		receiverOnline := false
-		for _, client := range clients {
-			if client.Username == req.Payload.Receiver {
-				receiverOnline = true
-				if err = client.Conn.WriteJSON(req); err != nil {
-					fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
-					// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-					break
-				} else if len(req.Payload.Message) >= 500 {
-					fmt.Fprintln(os.Stderr, "message length to much")
-					// utils.JsonErr(w, http.StatusBadRequest, "message length to much")
-					break
-				} else if len(req.Payload.Message) < 1 {
-					fmt.Fprintln(os.Stderr, "message is empty")
-					// utils.JsonErr(w, http.StatusBadRequest, "message is empty")
-					break
-				}
-				if err = SaveMessage(req.Payload, db, userId); err != nil {
-					if err == sql.ErrNoRows {
-						fmt.Fprintln(os.Stderr, "invalid receiver name")
-						// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
-						break
-					}
-					fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
-					// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-					break
-				}
-				break
+
+		if len(req.Payload.Message) >= 500 || len(req.Payload.Message) < 1 {
+			fmt.Fprintln(os.Stderr, "message length not valid!")
+			writeError(conn, "message length should be between 1 and 500 characters!", 1009)
+			continue // 
+		}
+
+		for _, client := range clients[req.Payload.Receiver] {
+			if err = client.Conn.WriteJSON(req); err != nil {
+				fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+				writeError(conn, "Error sending message.", 1011)
 			}
 		}
-		if !receiverOnline {
-			if err = SaveMessage(req.Payload, db, userId); err != nil {
-				if err == sql.ErrNoRows {
-					fmt.Fprintln(os.Stderr, "invalid receiver name")
-					// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
-					continue
-				}
-				fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
-				// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+
+		if err = SaveMessage(req.Payload, db, userId); err != nil {
+			if err == sql.ErrNoRows {
+				fmt.Fprintln(os.Stderr, "invalid receiver name")
+				// utils.JsonErr(w, http.StatusBadRequest, "invalid receiver name")
 				continue
 			}
+			fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+			// utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			continue
 		}
-
 	}
-	fmt.Printf("%s close the chat!\n", conn.RemoteAddr().String())
 }
 
-func WriteMessage(client Client, msg string) {}
+/*
+#---------- removeConn ----------#
+- remove connection from client connections
+*/
+func removeConn(conn *websocket.Conn, username string) {
+	mu.Lock()
+	defer mu.Unlock()
+	var newClientArr []Client
+	for _, client := range clients[username] {
+		if client.Conn != conn {
+			newClientArr = append(newClientArr, client)
+		}
+	}
+	clients[username] = newClientArr
+}
+
+/*
+#---------- writeError ----------#
+- write websocket error
+*/
+func writeError(conn *websocket.Conn, msg string, code int) {
+	var req Req[WSError]
+	req.Type = `error`
+	req.Payload.Message = msg
+	req.Payload.Status = code
+	if err := conn.WriteJSON(&req); err != nil {
+		fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+	}
+}
 
 /*
 #---------- CreateMessage ----------#

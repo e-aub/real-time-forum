@@ -179,9 +179,6 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-/*---------- all users connection ----------*/
-// var clients []Client
-
 /*
 #---------- HandleConn ----------#
 - handle connection.

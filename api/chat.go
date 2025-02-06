@@ -46,8 +46,19 @@ type Req[T Message | Status | WSError] struct {
 /*---------- handle users status ----------*/
 type WSError struct {
 	Type    string
-	Status  int
-	Message string
+	ErrType string // could be chat error or online users error
+	Error   any
+}
+
+type ChatError struct {
+	Error                  string
+	Status                 int
+	ConversationByUsername string
+}
+
+type StatusErr struct {
+	Error  string
+	Status int
 }
 
 /*---------- messages type ----------*/
@@ -65,11 +76,11 @@ var upgrader = websocket.Upgrader{
 }
 
 var Hub = HubType{
-	Clients:    make(map[string]Client),
-	Register:   make(chan Client),
-	Unregister: make(chan Client),
-	Broadcast:  make(chan Status),
-	Private:    make(chan Message),
+	Clients:    make(map[string]Client, 1024),
+	Register:   make(chan Client, 1024),
+	Unregister: make(chan Client, 1024),
+	Broadcast:  make(chan Status, 1024),
+	Private:    make(chan Message, 1024),
 }
 
 func (h *HubType) offlineDelayFunc(client *Client) bool {
@@ -229,7 +240,7 @@ func Upgrade(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 		fmt.Fprintln(os.Stderr, "invalid username!")
 		return
 	}
-	Hub.Register <- Client{Conns: []*websocket.Conn{conn}, Username: username}
+	Hub.Register <- Client{Conns: []*websocket.Conn{conn}, Username: username, UserId: userId}
 	go handleConn(conn, db, userId)
 }
 
@@ -264,6 +275,11 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 		}
 		message.Sender, _ = getUsername(db, userId)
 		if message.Receiver != "" {
+			message.CreationDate = time.Now().Format("2006-01-02 15:04:05")
+			if err := saveInDb(db, userId, message); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				break
+			}
 			Hub.Private <- message
 		}
 	}
@@ -278,4 +294,14 @@ func getUserId(db *sql.DB, username string) (int, error) {
 	query := `SELECT id FROM users WHERE (nickname = ?);`
 	err := db.QueryRow(query, &username).Scan(&id)
 	return id, err
+}
+
+func saveInDb(db *sql.DB, senderId int, message Message) error {
+	reciverId, err := getUserId(db, message.Receiver)
+	if err != nil {
+		return err
+	}
+	query := `INSERT INTO messages (sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)`
+	_, err = db.Exec(query, senderId, reciverId, message.Message, message.CreationDate)
+	return err
 }

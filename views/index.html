@@ -47,33 +47,74 @@
       // });
       const ws = new WebSocket("ws://localhost:8000/api/ws"); // Adjust the URL
 
+document.addEventListener("DOMContentLoaded", () => {
+    const messagesDiv = document.createElement("div");
+    messagesDiv.id = "messages";
+    document.body.appendChild(messagesDiv);
+});
+
+const appendMessage = (message) => {
+    const messagesDiv = document.getElementById("messages");
+    const messageElement = document.createElement("p");
+    messageElement.textContent = message;
+    messagesDiv.appendChild(messageElement);
+};
+
 ws.onopen = () => {
     console.log("Connected to WebSocket server");
+    appendMessage("Connected to WebSocket server");
 
-    // Send a test message after 1 second (prevents refresh issues)
+    // Send a test message every 2 seconds
     setInterval(() => {
         const testMessage = {
             type: "message",
-            receiver: "test_user",
+            receiver: "shiffu",
             message: "Hello, this is a test!",
             creation_date: new Date().toISOString(),
         };
 
         ws.send(JSON.stringify(testMessage));
         console.log("Sent message:", testMessage);
+        appendMessage(`Sent: ${testMessage.message}`);
     }, 2000);
 };
 
 ws.onmessage = (event) => {
-    console.log("Received message:", event.data);
+    try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === "status") {
+            console.log(`User: ${data.user_name}, Online: ${data.online}`);
+            appendMessage(`User: ${data.user_name}, Online: ${data.online}`);
+        } else if (data.type === "message") {
+            console.log(`Message from ${data.sender}: ${data.message}`);
+            appendMessage(`From ${data.sender}: ${data.message}`);
+        } else {
+            console.log("Received:", data);
+            appendMessage(`Received: ${JSON.stringify(data)}`);
+        }
+    } catch (error) {
+        console.error("Error parsing message:", error);
+        appendMessage("Error parsing message");
+    }
+};
+
+// Handle receiving messages from a user
+const receiveMessage = (data) => {
+    if (data.type === "message") {
+        console.log(`New message from ${data.sender}: ${data.message}`);
+        appendMessage(`New message from ${data.sender}: ${data.message}`);
+    }
 };
 
 ws.onclose = () => {
     console.log("Disconnected from WebSocket server");
+    appendMessage("Disconnected from WebSocket server");
 };
 
 ws.onerror = (error) => {
     console.error("WebSocket error:", error);
+    appendMessage("WebSocket error");
 };
 
 // Prevent form submission from reloading the page

@@ -31,7 +31,6 @@ func main() {
 
 	go api.Hub.Run()
 	go api.Hub.PingService()
-
 	go middleware.CleanupLimiters()
 
 	fmt.Printf("Server running in 'http://localhost%s'\n", port)

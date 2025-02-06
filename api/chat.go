@@ -37,17 +37,11 @@ type Status struct {
 	Online   bool   `json:"online"`
 }
 
-/*---------- request websocket types ----------*/
-type Req[T Message | Status | WSError] struct {
-	Type    string `json:"type"`
-	Payload T      `json:"payload"`
-}
-
 /*---------- handle users status ----------*/
-type WSError struct {
+type WSError[T ChatError | StatusErr] struct {
 	Type    string
 	ErrType string // could be chat error or online users error
-	Error   any
+	Error   T
 }
 
 type ChatError struct {

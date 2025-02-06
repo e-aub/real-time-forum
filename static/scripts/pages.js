@@ -2,7 +2,7 @@ import { router } from "./router.js";
 
 class Page {
     navigate(path) {
-        router.navigate(path);
+        router.route(path);
     }
 }
 

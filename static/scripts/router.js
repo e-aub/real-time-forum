@@ -36,7 +36,6 @@ class Router {
             routeName = '/login';
             this.routes[routeName].render();
         }else if (authenticated && (routeName === '/login' || routeName === '/signup')) {
-            console.log("routeName");
             routeName = '/';
             this.routes[routeName].render();
         }else{

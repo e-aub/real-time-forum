@@ -13,8 +13,9 @@
       <input type="text" id="message" placeholder="what's in your mind?" />
       <button type="submit">SEND</button>
     </form>
-    <!-- <script src="../static/scripts/router.js" type="module"></script> -->
-    <script>
+    <script src="/static/scripts/router.js" type="module"></script>
+    <!-- SI YASSINE script-->
+    <!-- <script>
       // const socket = new WebSocket("ws://localhost:8000/api/ws");
       // socket.addEventListener("open", (e) => {
       //   console.log("Connection opened");
@@ -45,7 +46,12 @@
       //   data = JSON.parse(event.data)
       //   console.log(`Message from ${data.sender}`,data );
       // });
-      const ws = new WebSocket("ws://localhost:8000/api/ws"); // Adjust the URL
+
+    </script> -->
+    
+    <!-- AYOUB script-->
+    <!-- <script>
+         const ws = new WebSocket("ws://localhost:8000/api/ws");
 
 document.addEventListener("DOMContentLoaded", () => {
     const messagesDiv = document.createElement("div");
@@ -121,7 +127,6 @@ ws.onerror = (error) => {
 document.addEventListener("submit", (event) => {
     event.preventDefault();
 });
-
-    </script>
+    </script> -->
   </body>
 </html>

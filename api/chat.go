@@ -36,6 +36,7 @@ func (h *HubType) Run() {
 		case client := <-h.Register:
 			h.RegisterClient(client)
 		case client := <-h.Unregister:
+			fmt.Println("unregister, username:", client.Username)
 			h.UnregisterClient(client)
 		case message := <-h.Broadcast:
 			h.BroadcastMessage(message)
@@ -46,14 +47,14 @@ func (h *HubType) Run() {
 }
 
 func (h *HubType) PingService() {
-	ticker := time.NewTicker(time.Second * 30)
+	ticker := time.NewTicker(time.Second * 20)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		h.Mu.Lock()
 		for _, client := range h.Clients {
 			for _, conn := range client.Conns {
-				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				if err := conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second*20)); err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					Hub.Unregister <- client
 				}
@@ -76,10 +77,10 @@ func (h *HubType) RegisterClient(client Client) {
 		h.Clients[client.Username] = client
 	}
 
-	client.Conns[len(client.Conns)-1].SetReadDeadline(time.Now().Add(time.Second * 30))
+	client.Conns[len(client.Conns)-1].SetReadDeadline(time.Now().Add(time.Second * 20))
 
 	client.Conns[len(client.Conns)-1].SetPongHandler(func(appData string) error {
-		return client.Conns[len(client.Conns)-1].SetReadDeadline(time.Now().Add(time.Second * 30))
+		return client.Conns[len(client.Conns)-1].SetReadDeadline(time.Now().Add(time.Second * 20))
 	})
 
 	h.Mu.Unlock()
@@ -88,11 +89,20 @@ func (h *HubType) RegisterClient(client Client) {
 func (h *HubType) UnregisterClient(client Client) {
 	h.Mu.Lock()
 	cl := h.Clients[client.Username]
-	if len(cl.Conns) == 1 {
+	if len(cl.Conns) <= 1 {
+		cl.Conns[0].Close()
 		delete(h.Clients, client.Username)
+		h.Mu.Unlock()
+		h.Broadcast <- Status{
+			Type:     "status",
+			UserName: client.Username,
+			Online:   false,
+		}
+		return
 	}
 	for i, c := range cl.Conns {
 		if c == client.Conns[0] {
+			// c.Close()
 			cl.Conns = append(cl.Conns[:i], cl.Conns[i+1:]...)
 		}
 	}
@@ -101,14 +111,17 @@ func (h *HubType) UnregisterClient(client Client) {
 }
 
 func (h *HubType) SendPrivateMessage(message Message) {
+	fmt.Println(message)
+	h.Mu.Lock()
 	to, ok := h.Clients[message.Receiver]
 	if !ok {
 		h.Mu.Unlock()
+		fmt.Fprintln(os.Stderr, "receiver not found")
 		return
 	}
 	for _, conn := range to.Conns {
 		if err := conn.WriteJSON(message); err != nil {
-			fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 	h.Mu.Unlock()
@@ -119,7 +132,7 @@ func (h *HubType) BroadcastMessage(message any) {
 	for _, client := range h.Clients {
 		for _, conn := range client.Conns {
 			if err := conn.WriteJSON(message); err != nil {
-				fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
+				fmt.Fprintln(os.Stderr, err)
 			}
 		}
 	}
@@ -134,8 +147,9 @@ type BaseMessage struct {
 
 /*---------- status tracking type ----------*/
 type Status struct {
-	Online  string `json:"online"`
-	Offline string `json:"offline"`
+	Type     string `json:"type"`
+	UserName string `json:"user_name"`
+	Online   bool   `json:"online"`
 }
 
 /*---------- request websocket types ----------*/
@@ -205,22 +219,21 @@ func getUsername(db *sql.DB, userId int) (string, error) {
 	return username, err
 }
 
-func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {}
-
-// 	defer conn.Close()
-// 	baseReq := BaseMessage{}
-// 	for {
-// 		err := conn.ReadJSON(&baseReq)
-// 		if err != nil {
-// 			fmt.Fprintln(os.Stderr, err)
-// 			break
-// 		}
-// 	switch baseReq.Type {
-// 	case "message":
-// 		var message Message
-// 		if err = conn.ReadJSON(&req); err != nil {
-// 			fmt.Fprintln(os.Stderr, http.StatusText(http.StatusInternalServerError))
-// 		}
+func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
+	fmt.Println("Connected:", conn.RemoteAddr())
+	for {
+		var message Message
+		if err := conn.ReadJSON(&message); err != nil {
+			Hub.Unregister <- Client{Conns: []*websocket.Conn{conn}, Username: message.Sender}
+			fmt.Fprintln(os.Stderr, err)
+			break
+		}
+		message.Sender, _ = getUsername(db, userId)
+		if message.Receiver != "" {
+			Hub.Private <- message
+		}
+	}
+}
 
 // 		receiverOnline := false
 // 		for _, client := range clients {

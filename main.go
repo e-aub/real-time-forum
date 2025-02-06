@@ -30,6 +30,7 @@ func main() {
 	mainMux.HandleFunc("/ws", handlers.Test)
 
 	go api.Hub.Run()
+	go api.Hub.PingService()
 
 	go middleware.CleanupLimiters()
 

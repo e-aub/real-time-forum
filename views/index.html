@@ -13,38 +13,74 @@
       <input type="text" id="message" placeholder="what's in your mind?" />
       <button type="submit">SEND</button>
     </form>
-    <script src="../static/scripts/router.js" type="module"></script>
+    <!-- <script src="../static/scripts/router.js" type="module"></script> -->
     <script>
-      const socket = new WebSocket("ws://localhost:8000/api/ws");
-      socket.addEventListener("open", (e) => {
-        console.log("Connection opened");
-      });
+      // const socket = new WebSocket("ws://localhost:8000/api/ws");
+      // socket.addEventListener("open", (e) => {
+      //   console.log("Connection opened");
+      // });
 
-      function sendMessage(event) {
-        event.preventDefault();
-        const message = document.querySelector("#message");
-        if (socket.readyState === WebSocket.OPEN) {
-          const date = new Date()
-            const data = {
-                sender: "yassinerahhaui",
-                receiver: "Yrahhaoui1234",
-                message: message.value,
-                creationDate: date.toString()
-            }
-          socket.send(JSON.stringify(data))
-          console.log(data);
+      // function sendMessage(event) {
+      //   event.preventDefault();
+      //   const message = document.querySelector("#message");
+      //   if (socket.readyState === WebSocket.OPEN) {
+      //     const date = new Date()
+      //       const data = {
+      //           sender: "yassinerahhaui",
+      //           receiver: "Yrahhaoui1234",
+      //           message: message.value,
+      //           creationDate: date.toString()
+      //       }
+      //     socket.send(JSON.stringify(data))
+      //     console.log(data);
           
-          message.value = "";
-        } else {
-          console.error("WebSocket is not open. Ready state: " + socket.readyState);
-        }
-      }
+      //     message.value = "";
+      //   } else {
+      //     console.error("WebSocket is not open. Ready state: " + socket.readyState);
+      //   }
+      // }
 
-      // Listen for messages
-      socket.addEventListener("message", (event) => {
-        data = JSON.parse(event.data)
-        console.log(`Message from ${data.sender}`,data );
-      });
+      // // Listen for messages
+      // socket.addEventListener("message", (event) => {
+      //   data = JSON.parse(event.data)
+      //   console.log(`Message from ${data.sender}`,data );
+      // });
+      const ws = new WebSocket("ws://localhost:8000/api/ws"); // Adjust the URL
+
+ws.onopen = () => {
+    console.log("Connected to WebSocket server");
+
+    // Send a test message after 1 second (prevents refresh issues)
+    setInterval(() => {
+        const testMessage = {
+            type: "message",
+            receiver: "test_user",
+            message: "Hello, this is a test!",
+            creation_date: new Date().toISOString(),
+        };
+
+        ws.send(JSON.stringify(testMessage));
+        console.log("Sent message:", testMessage);
+    }, 2000);
+};
+
+ws.onmessage = (event) => {
+    console.log("Received message:", event.data);
+};
+
+ws.onclose = () => {
+    console.log("Disconnected from WebSocket server");
+};
+
+ws.onerror = (error) => {
+    console.error("WebSocket error:", error);
+};
+
+// Prevent form submission from reloading the page
+document.addEventListener("submit", (event) => {
+    event.preventDefault();
+});
+
     </script>
   </body>
 </html>

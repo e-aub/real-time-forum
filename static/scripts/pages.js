@@ -192,14 +192,10 @@ async function ParseHomeTemplate(userData) {
                         </div>
                     </div>
 
-                    <div class="online-users">
+                    <div class="users-list">
                         <h3>Contacts</h3>
                         <ul class="user-list">
-                            <li class="user-item" onclick="openChat('yassine abcdef')">
-                                <img src="" alt="Shiffu" class="user-avatar"/>
-                                <span>yassine abcdef</span>
-                                <div class="online-indicator"></div>
-                            </li>
+                            <!-- Users will be dynamically added here -->
                         </ul>
                     </div>
 

@@ -14,6 +14,14 @@
       <button type="submit">SEND</button>
     </form>
     <script src="/static/scripts/router.js" type="module"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        let ws = new WebSocket("ws://localhost:8000/api/ws");
+        ws.onopen = () => {
+          console.log("Connected to WebSocket server");
+        };
+    });
+    </script>
     <!-- SI YASSINE script-->
     <!-- <script>
       // const socket = new WebSocket("ws://localhost:8000/api/ws");
@@ -50,7 +58,7 @@
     </script> -->
     
     <!-- AYOUB script-->
-    <script>
+    <!-- <script>
          const ws = new WebSocket("ws://localhost:8000/api/ws");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -127,6 +135,6 @@ ws.onerror = (error) => {
 document.addEventListener("submit", (event) => {
     event.preventDefault();
 });
-    </script>
+    </script> -->
   </body>
 </html>

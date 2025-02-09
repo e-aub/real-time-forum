@@ -11,6 +11,7 @@ import (
 )
 
 type User struct {
+	Avatar    string `json:"avatar"`
 	Nickname  string `json:"username"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
@@ -18,8 +19,13 @@ type User struct {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
-	query := `SELECT nickname, firstname, lastname FROM users JOIN messages ON users.id = messages.sender_id OR users.id = messages.receiver_id GROUP BY users.id ORDER BY messages.created_at DESC`
-	rows, err := db.Query(query)
+	query := `SELECT nickname, firstname, lastname FROM users 
+				JOIN messages ON users.id = messages.sender_id OR users.id = messages.receiver_id
+				WHERE users.id != ?
+				GROUP BY users.id 
+				ORDER BY messages.created_at DESC;`
+
+	rows, err := db.Query(query, userId)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -34,6 +40,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		user.Avatar = utils.CreateUserAvatar(user.FirstName, user.LastName)
 		api.Hub.Mu.Lock()
 		_, user.Online = api.Hub.Clients[user.Nickname]
 		api.Hub.Mu.Unlock()

@@ -1,4 +1,6 @@
 import { Page, ParseHomeTemplate } from "./pages.js";
+import { status } from "./status.js";
+import { chat } from "./chat.js";
 
 export class HomePage extends Page {
     constructor() {
@@ -80,6 +82,8 @@ export class HomePage extends Page {
                 throttledGetPosts();
             }
         })
+        let chata = new chat();
+        // chata.init();
     }
 
     throttle(func, limit) {

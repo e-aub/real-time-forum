@@ -428,7 +428,7 @@
     color: #d97706;           
 }
 /* Online Users */
-.online-users {
+.users-list {
     position: fixed;
     right: 0;
     top: 56px;
@@ -441,7 +441,7 @@
 }
 
 
-.online-users h3 {
+.users-list h3 {
     padding: 0 8px;
     margin-bottom: 12px;
     color: #65676b;

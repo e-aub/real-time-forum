@@ -203,13 +203,294 @@ async function ParseHomeTemplate(userData) {
                         </ul>
                     </div>
 
-                    <!-- Modals -->
-                    <div class="modal comments-modal" id="commentsModal">
-                        <!-- Comments modal content -->
+                    <div class="chat-list">
+                        <ul class="user-list">
+                            <li class="user-item" data-username="John Doe">
+                                <img src="/path/to/avatar.jpg" alt="John Doe" class="user-avatar"/>
+                                <div class="online-indicator"></div>
+                            </li>
+                            <!-- For offline users -->
+                            <li class="user-item offline" data-username="Jane Smith">
+                                <img src="/path/to/avatar.jpg" alt="Jane Smith" class="user-avatar"/>
+                                <div class="online-indicator"></div>
+                            </li>
+                        </ul>
                     </div>
 
+                    <!-- Comments Modals -->
+                    <div class="background-overlay"></div>
+                    <section class="comments-section">
+                    <div class="comments-container">
+                        <div class="comment-content">
+                        <article class="post-details">
+                            <header class="post-header">
+                            <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                            <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="post-body">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam!
+                            Placeat molestiae deleniti adipisci facilis accusantium enim,
+                            consectetur necessitatibus non. Tempora ad blanditiis harum
+                            tempore autem fugiat nihil velit dicta!
+                            </p>
+                        </article>
+                        <!-- Comment Cards -->
+                        <div class="comment-list">
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                            <article class="comment-card">
+                            <header class="comment-header">
+                                <img src="${userData.avatar_url}" class="profile-img" alt="profile image" />
+                                <p class="profile-username">Yassine Rahhaoui</p>
+                            </header>
+                            <p class="comment-body">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex,
+                                nam!
+                            </p>
+                            </article>
+                        </div>
+                        </div>
+                        <!-- Comment Form -->
+                        <form id="comment-form" class="comment-form" method="post" novalidate>
+                        <div class="comment-form-group">
+                            <input
+                            type="text"
+                            name="comment"
+                            class="comment-input"
+                            id="comment"
+                            placeholder="Create your comment..."
+                            autocomplete="off"
+                            required
+                            />
+                            <button type="submit" class="comment-btn">Send</button>
+                        </div>
+                        </form>
+                    </div>
+                    </section>
+
                     <div class="chat-container">
-                        <!-- Chat windows will be dynamically added here -->
+                        <div class="chat-window" id="chat-window-1">
+                            <!-- Chat Header -->
+                            <div class="chat-header">
+                                <div class="user-info">
+                                    <img src="avatar" alt="alt" class="user-avatar"/>
+                                    <div class="header-text">
+                                        <span class="username">eaub</span>
+                                        <span class="online-status">Active Now</span>
+                                    </div>
+                                </div>
+                                <div class="chat-actions">
+                                    <button class="minimize-btn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24">
+                                            <path d="M20 12L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    <button class="close-btn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24">
+                                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <div class="chat-messages" id="messages-1">
+                                <!-- Messages will be dynamically added here -->
+                                <div class="message-group received">
+                                    <img src="1" alt="1" class="message-avatar"/>
+                                    <div class="messages">
+                                        <div class="message">Hey, how are you?</div>
+                                        <div class="message">I was wondering if you're free today?</div>
+                                        <div class="message-time">2:30 PM</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="message-group sent">
+                                    <div class="messages">
+                                        <div class="message">Hi! I'm good, thanks!</div>
+                                        <div class="message">Yes, I'm free after 4 PM</div>
+                                        <div class="message-time">2:31 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="chat-input">
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Type a message..." 
+                                        id="input-1"
+                                        class="message-input"
+                                    />
+                                </div>
+                                <button class="send-btn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24">
+                                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                         <div class="chat-window" id="chat-window-1">
+                            <!-- Chat Header -->
+                            <div class="chat-header">
+                                <div class="user-info">
+                                    <img src="avatar" alt="alt" class="user-avatar"/>
+                                    <div class="header-text">
+                                        <span class="username">eaub</span>
+                                        <span class="online-status">Active Now</span>
+                                    </div>
+                                </div>
+                                <div class="chat-actions">
+                                    <button class="minimize-btn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24">
+                                            <path d="M20 12L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    <button class="close-btn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24">
+                                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <div class="chat-messages" id="messages-1">
+                                <!-- Messages will be dynamically added here -->
+                                <div class="message-group received">
+                                    <img src="1" alt="1" class="message-avatar"/>
+                                    <div class="messages">
+                                        <div class="message">Hey, how are you?</div>
+                                        <div class="message">I was wondering if you're free today?</div>
+                                        <div class="message-time">2:30 PM</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="message-group sent">
+                                    <div class="messages">
+                                        <div class="message">Hi! I'm good, thanks!</div>
+                                        <div class="message">Yes, I'm free after 4 PM</div>
+                                        <div class="message-time">2:31 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="chat-input">
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Type a message..." 
+                                        id="input-1"
+                                        class="message-input"
+                                    />
+                                </div>
+                                <button class="send-btn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24">
+                                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>`;
 }
 

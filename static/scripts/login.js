@@ -1,4 +1,4 @@
-import { Page, loginTemplate } from "./pages.js";
+import { Page, loginTemplate } from "/static/scripts/pages.js";
 
 export class LoginPage extends Page {
     constructor() {

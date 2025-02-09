@@ -1,8 +1,7 @@
-const { time, timeStamp } = require("console");
 
 class ws{
     constructor(){
-        this.ws = new WebSocket('ws://localhost:8000/api/ws');
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8000/api/ws`);
         this.ws.onopen = (event)=> this.onopen.bind(this, event);
         this.ws.onmessage = this.onmessage.bind(this);
         this.ws.onclose = this.onclose.bind(this);

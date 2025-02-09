@@ -1,6 +1,6 @@
-import { HomePage } from './home.js';
-import { LoginPage } from './login.js';
-import { SignupPage } from './signup.js';
+import { HomePage } from '/static/scripts/home.js';
+import { LoginPage } from '/static/scripts/login.js';
+import { SignupPage } from '/static/scripts/signup.js';
 
 class Router {
     constructor(routes = {}) {

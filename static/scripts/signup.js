@@ -1,4 +1,4 @@
-import { Page, signUpTemplate } from "./pages.js";
+import { Page, signUpTemplate } from "/static/scripts/pages.js";
 
 export class SignupPage extends Page {
     constructor() {

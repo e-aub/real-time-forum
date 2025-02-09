@@ -1,6 +1,6 @@
-import { Page, ParseHomeTemplate } from "./pages.js";
-import { status } from "./status.js";
-import { chat } from "./chat.js";
+import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
+import { status } from "/static/scripts/status.js";
+import { chat } from "/static/scripts/chat.js";
 
 export class HomePage extends Page {
     constructor() {

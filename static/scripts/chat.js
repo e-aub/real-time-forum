@@ -1,4 +1,4 @@
-import { status } from "./status.js";
+import { status } from "/static/scripts/status.js";
 
 class chat extends status {
     constructor() {

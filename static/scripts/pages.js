@@ -1,4 +1,4 @@
-import { router } from "./router.js";
+import { router } from "/static/scripts/router.js";
 
 class Page {
     navigate(path) {

@@ -1,4 +1,4 @@
-import { User } from "./user.js";
+import { User } from "/static/scripts/user.js";
 
 class status {
     constructor(){

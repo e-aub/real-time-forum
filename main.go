@@ -18,7 +18,7 @@ import (
 var UsersLimiters sync.Map
 
 func main() {
-	port := ":8000"
+	port := "0.0.0.0:8080"
 	db, db_err := sql.Open("sqlite3", "./forum.db")
 	if db_err != nil {
 		log.Fatal(db_err.Error())

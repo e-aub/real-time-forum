@@ -1,6 +1,6 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { status } from "/static/scripts/status.js";
-import { chat } from "/static/scripts/chat.js";
+import { Chat } from "/static/scripts/chat.js";
 
 export class HomePage extends Page {
     constructor() {
@@ -82,7 +82,7 @@ export class HomePage extends Page {
                 throttledGetPosts();
             }
         })
-        let chata = new chat();
+        let chata = new Chat();
         // chata.init();
     }
 

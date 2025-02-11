@@ -16,7 +16,7 @@
     <script src="/static/scripts/router.js" type="module"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        let ws = new WebSocket("ws://localhost:8000/api/ws");
+        let ws = new WebSocket("ws://localhost:8080/api/ws");
         ws.onopen = () => {
           console.log("Connected to WebSocket server");
         };

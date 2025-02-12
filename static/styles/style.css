@@ -997,8 +997,14 @@
 .message-time {
     font-size: 11px;
     color: #65676b;
-    margin-top: 2px;
-    text-align:  center;
+}
+
+.message.sent .message-time {
+    text-align: right;
+}
+
+.message.received .message-time {
+    text-align: left;
 }
 
 /* Input area styles */

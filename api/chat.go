@@ -270,18 +270,16 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 			break
 		}
 		if message.Type == "message" {
-			fmt.Printf("Raw received message: %+v\n", message) // Add this
-
 			message.Sender, _ = getUsername(db, userId)
-			if message.Receiver != "" {
-				message.CreationDate = time.Now().Format("2006-01-02 15:04:05")
-				fmt.Printf("Message before save: %+v\n", message) // Add this
+			if message.Receiver != "" && message.Message != "" {
+				message.CreationDate = time.Now().Format("2006-01-02 15:04")
 				if err := saveInDb(db, userId, message); err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					break
 				}
 				Hub.Private <- message
 			}
+		} else if message.Type == "status" {
 		}
 	}
 }

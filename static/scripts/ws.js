@@ -35,7 +35,7 @@ class ws{
                             avatar: data.avatar,
                             message: data.content,
                             sender: data.sender,
-                            timeStamp: data.creation_date,
+                            creation_date: data.creation_date,
                         }
                     }
                 );

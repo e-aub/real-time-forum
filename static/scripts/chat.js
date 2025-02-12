@@ -1,7 +1,7 @@
 import { status } from "/static/scripts/status.js";
 
 class Chat extends status {
-    constructor() {
+    constructor(myData) {
         super();
         this.chatWindowContainerHtmlElement = null;
         this.chatListContainerHtmlElement = null;
@@ -9,6 +9,7 @@ class Chat extends status {
         this.chatWindows = new Map();
         this.chatList = new Map();
         this.init();
+        this.myData = myData;
     }
 
     init() {
@@ -29,7 +30,9 @@ class Chat extends status {
         document.addEventListener('message', (e) => {
             if (this.chatWindows.has(e.detail.sender)) {
                 let messageElement = this.#createMessageElement(e.detail.sender, e.detail);
-                this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages').appendChild(messageElement);
+                let chatContainer =  this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages')
+               chatContainer.appendChild(messageElement);
+               chatContainer.scroll(0, chatContainer.scrollHeight);
             }
         });
     }
@@ -125,8 +128,9 @@ class Chat extends status {
         messageInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 if (!this.#messageValid(messageInput.value)) return;
-                this.sendMessage(username, messageInput.value, avatar);
-                messageInput.value = '';
+            this.sendMessage(messagesContainer, messageInput.value, username, avatar);
+            messageInput.value = '';
+            messageInput.focus();
             }
         });
         inputWrapper.appendChild(messageInput);
@@ -144,6 +148,7 @@ class Chat extends status {
             if (!this.#messageValid(messageInput.value)) return;
             this.sendMessage(messagesContainer, messageInput.value, username, avatar);
             messageInput.value = '';
+            messageInput.focus();
         });
         inputArea.appendChild(sendBtn);
 
@@ -151,11 +156,12 @@ class Chat extends status {
         chatWindow.appendChild(messagesContainer);
         chatWindow.appendChild(inputArea);
 
-        chatWindow.addEventListener('scroll', () => {
+        messagesContainer.addEventListener('scroll', () => {
             let chatWindow = this.chatWindows.get(username).element
-            let loading = document.createElement('div');
-            loading.innerText = 'Loading...';
-            chatWindow.prepend(loading);
+            if (chatWindow.scrollTop === 0) {
+                console.log("load old messages...........................");
+                this.throtteledLoadOldMessages(username);
+            }
         });
 
         return chatWindow;
@@ -166,8 +172,11 @@ class Chat extends status {
 
         if (!this.chatWindows.has(user.username)) {
             if (this.chatWindows.size > 3) {
-                let [firstChatWindow] = [...this.chatWindows][1];
-                this.hideChatWindow(firstChatWindow);
+                console.log("mooooooore than")
+                let [firstChatWindow] = [...this.chatWindows][0];
+                console.log(firstChatWindow);
+                let opponnentUser = this.users.get(firstChatWindow);
+                this.hideChatWindow(opponnentUser);
             }
             this.popFromChatList(user);
             this.createChatWindow(user);
@@ -180,6 +189,7 @@ class Chat extends status {
     }
 
     hideChatWindow(user) {
+        console.log("Hiding chat window for user", user.username);
         let chatWindow = this.chatWindows.get(user.username);
         if (chatWindow) {
             this.pushToChatList(user);
@@ -203,7 +213,7 @@ class Chat extends status {
         if (!this.chatList.has(user.username)) {
             console.log("push to chat list");
             if (this.chatList.size > 10) {
-                let [firstChatListItem] = [...this.chatList][1];
+                let firstChatListItem = Array.from(this.chatWindows.keys())[0];
                 this.popFromChatList(firstChatListItem);
             }
             this.createChatListItem(this.users.get(user.username));
@@ -294,24 +304,40 @@ class Chat extends status {
         }
     }
 
+    throttle(func, delay) {
+        let lastCall = 0;
+        return function (...args) {
+            const now = Date.now();
+            if (now - lastCall < delay) {
+                return;
+            }
+            lastCall = now;
+            func.apply(this, args);
+        }
+    }
+
+    throtteledLoadOldMessages = this.throttle(this.loadOldMessages, 1000);
+
     appendMessages(username, messages) {
         let chatWindow = this.chatWindows.get(username);
         let chatContainer = chatWindow.element.querySelector('.chat-messages');
         messages.forEach(message => {
             chatContainer.prepend(this.#createMessageElement(username, message));
+            chatContainer.scroll(0, chatContainer.scrollHeight);
         })
     }
 
     #createMessageElement(username, message) {
+        console.log("creating message elemnt:", message);
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', message.sender === username ? 'sent' : 'received');
+        let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);
         messageElement.innerHTML = `
-         <img src="${message.avatar}" class="message-avatar" alt="${message.sender}">
+         <img src="${avatar}" class="message-avatar" alt="${message.sender}">
             <div class="message-content">
+            <div class="message-time">${message.creation_date}</div>
             <div class="message-text">${message.message}</div>
             </div>
-            <br>
-            <div class="message-time">${new Date(message.creation_date).toLocaleTimeString()}</div>
         `;
         return messageElement;
     }
@@ -322,8 +348,16 @@ class Chat extends status {
     }
 
     sendMessage(messagesContainer, messageContent, username, avatar) {
-        let messageElement = this.#createMessageElement(username, { message: messageContent, avatar: avatar, creation_date: new Date().toISOString() });
+        let messageElement = this.#createMessageElement(username, { message: messageContent, avatar: avatar, creation_date:  new Date().toLocaleString('en-CA', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).replace(',', '') });
         messagesContainer.appendChild(messageElement);
+        messagesContainer.scroll(0, messagesContainer.scrollHeight);
 
         let e = new CustomEvent('sendmessage', {
             detail: {

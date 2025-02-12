@@ -16,22 +16,30 @@ class Chat extends status {
         this.chatListContainerHtmlElement = document.querySelector('.chat-list .user-list');
         this.usersListHtmlElement = document.querySelector('.users-list');
         console.log("chat list :", this.chatListContainerHtmlElement);
-        
+
         this.usersListHtmlElement.addEventListener('click', (e) => {
             if (e.target.parentNode.classList.contains('user-item')) {
                 this.openChatWindow(this.users.get(e.target.parentNode.dataset.username));
             } else if (e.target.classList.contains('user-item')) {
                 console.log(this.users.get(e.target.dataset.username).username);
                 this.openChatWindow(this.users.get(e.target.dataset.username));
-            }           
+            }
+        });
+
+        document.addEventListener('message', (e) => {
+            if (this.chatWindows.has(e.detail.sender)) {
+                let messageElement = this.#createMessageElement(e.detail.sender, e.detail);
+                this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages').appendChild(messageElement);
+            }
         });
     }
 
     createChatWindow(user) {
         console.log(`Creating chat window for user ${user}`);
         const chatWindow = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
-        this.chatWindowContainerHtmlElement.appendChild(chatWindow); 
-        this.chatWindows.set(user.username, { element: chatWindow, focused: true });
+        this.chatWindowContainerHtmlElement.appendChild(chatWindow);
+        this.chatWindows.set(user.username, { element: chatWindow, focused: true, isTyping: false });
+        this.loadOldMessages(user.username);
         // this.pushToChatList(user);
     }
 
@@ -111,10 +119,13 @@ class Chat extends status {
         messageInput.id = `input-${username}`;
         messageInput.className = 'message-input';
         //enter send message event listener
+
+        messageInput.addEventListener('input', this.debouncedTypingHandler.bind(this, username));
+
         messageInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-               
-                console.log('Message sent:', messageInput.value);
+                if (!this.#messageValid(messageInput.value)) return;
+                this.sendMessage(username, messageInput.value, avatar);
                 messageInput.value = '';
             }
         });
@@ -128,9 +139,10 @@ class Chat extends status {
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         `;
-            //send icon event listener
+        //send icon event listener
         sendBtn.addEventListener('click', () => {
-            console.log('Message sent:', messageInput.value);
+            if (!this.#messageValid(messageInput.value)) return;
+            this.sendMessage(messagesContainer, messageInput.value, username, avatar);
             messageInput.value = '';
         });
         inputArea.appendChild(sendBtn);
@@ -139,12 +151,19 @@ class Chat extends status {
         chatWindow.appendChild(messagesContainer);
         chatWindow.appendChild(inputArea);
 
+        chatWindow.addEventListener('scroll', () => {
+            let chatWindow = this.chatWindows.get(username).element
+            let loading = document.createElement('div');
+            loading.innerText = 'Loading...';
+            chatWindow.prepend(loading);
+        });
+
         return chatWindow;
     }
 
     openChatWindow(user) {
         console.log(this.chatWindows);
-        
+
         if (!this.chatWindows.has(user.username)) {
             if (this.chatWindows.size > 3) {
                 let [firstChatWindow] = [...this.chatWindows][1];
@@ -180,8 +199,8 @@ class Chat extends status {
     pushToChatList(user) {
         console.log(user);
         console.log(this.chatList.has(user.username));
-        
-        if (!this.chatList.has(user.username)) {            
+
+        if (!this.chatList.has(user.username)) {
             console.log("push to chat list");
             if (this.chatList.size > 10) {
                 let [firstChatListItem] = [...this.chatList][1];
@@ -189,17 +208,17 @@ class Chat extends status {
             }
             this.createChatListItem(this.users.get(user.username));
         }
-            console.log("adjust display");
-            
-            let chatListItem = this.chatList.get(user.username);
-            chatListItem.focused = true;
-            chatListItem.element.style.display = 'flex';
-        
+        console.log("adjust display");
+
+        let chatListItem = this.chatList.get(user.username);
+        chatListItem.focused = true;
+        chatListItem.element.style.display = 'flex';
+
     }
 
     popFromChatList(user) {
         console.log("pop from chat list");
-        
+
         let chatListItem = this.chatList.get(user.username);
         if (chatListItem) {
             chatListItem.element.style.display = 'none';
@@ -225,6 +244,94 @@ class Chat extends status {
 
         this.chatList.set(user.username, { element: chatListItem, focused: false });
         this.chatListContainerHtmlElement.prepend(chatListItem);
+    }
+
+    debouncedTypingHandler = this.debounce(this.#TypingHandler, 1000);
+
+    #TypingHandler(username) {
+        let chatWindow = this.chatWindows.get(username);
+        if (chatWindow.isTyping) {
+            chatWindow.isTyping = false;
+            const event = new CustomEvent('typing', { detail: { username: username, isTyping: false } });
+            document.dispatchEvent(event);
+            return;
+        }
+        chatWindow.isTyping = true;
+        const event = new CustomEvent('typing', { detail: { username: username, isTyping: true } });
+        document.dispatchEvent(event);
+    }
+
+
+    debounce(func, delay) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        }
+    }
+
+    async loadOldMessages(username) {
+        let chatWindow = this.chatWindows.get(username);
+        try {
+            if (chatWindow.lastId === -1) {
+                console.log("no more messages to load");
+                return;
+            }
+            const queryParams = new URLSearchParams({ opponnent: username, offset: chatWindow.lastId ? chatWindow.lastId : "" });
+            const resp = await fetch(`/api/messages?${queryParams.toString()}`);
+            if (!resp.ok) throw new Error("Error fetching messages");
+            const data = await resp.json();
+            console.log(data);
+
+            chatWindow.lastId = data.offset;
+            this.appendMessages(username, data.messages);
+            console.log(data);
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    appendMessages(username, messages) {
+        let chatWindow = this.chatWindows.get(username);
+        let chatContainer = chatWindow.element.querySelector('.chat-messages');
+        messages.forEach(message => {
+            chatContainer.prepend(this.#createMessageElement(username, message));
+        })
+    }
+
+    #createMessageElement(username, message) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', message.sender === username ? 'sent' : 'received');
+        messageElement.innerHTML = `
+         <img src="${message.avatar}" class="message-avatar" alt="${message.sender}">
+            <div class="message-content">
+            <div class="message-text">${message.message}</div>
+            </div>
+            <br>
+            <div class="message-time">${new Date(message.creation_date).toLocaleTimeString()}</div>
+        `;
+        return messageElement;
+    }
+
+    #messageValid(message) {
+        message = message.trim();
+        return message.length > 0;
+    }
+
+    sendMessage(messagesContainer, messageContent, username, avatar) {
+        let messageElement = this.#createMessageElement(username, { message: messageContent, avatar: avatar, creation_date: new Date().toISOString() });
+        messagesContainer.appendChild(messageElement);
+
+        let e = new CustomEvent('sendmessage', {
+            detail: {
+                reciever: username,
+                message: messageContent
+            }
+        })
+        document.dispatchEvent(e);
     }
 }
 

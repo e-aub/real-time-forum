@@ -1,6 +1,7 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { status } from "/static/scripts/status.js";
 import { Chat } from "/static/scripts/chat.js";
+import { ws } from "/static/scripts/ws.js";
 
 export class HomePage extends Page {
     constructor() {
@@ -10,7 +11,7 @@ export class HomePage extends Page {
         this.maxId = null;
         this.userData = null;
     }
-
+    Ws = new ws();
     async render() {
         try {
             const response = await fetch("/api/authenticated");
@@ -82,7 +83,7 @@ export class HomePage extends Page {
                 throttledGetPosts();
             }
         })
-        let chata = new Chat();
+        let chata = new Chat(this.userData);
         // chata.init();
     }
 

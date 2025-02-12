@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"forum/utils"
 )
@@ -12,17 +13,21 @@ import (
 type Message struct {
 	SenderId   int
 	ReceiverId int
+	Id         int
 	Sender     string `json:"sender"`
 	Receiver   string `json:"receiver"`
 	Message    string `json:"message"`
 	CreatedAt  string `json:"creation_date"`
 }
 
+type resp struct {
+	Messages []Message `json:"messages"`
+	Offset   int       `json:"offset"`
+}
+
 func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
-	offset := r.URL.Query().Get("offset")
-	opponentUsername := r.URL.Query().Get("opponent-username")
+	opponentUsername := r.URL.Query().Get("opponnent")
 	opponnentId, err := utils.GetUserId(db, opponentUsername)
-	fmt.Println(err)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			utils.JsonErr(w, http.StatusBadRequest, "invalid opponent username!")
@@ -31,12 +36,13 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
-	if offset == "" {
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	if err != nil || offset <= 0 {
 		fmt.Println("sender", userId, "receiver", opponnentId)
-		query := `SELECT MAX(id) FROM messages WHERE id IN (
-			(SELECT MAX(id) FROM messages WHERE sender_id = $1 AND receiver_id = $2),
-			(SELECT MAX(id) FROM messages WHERE receiver_id = $2 AND sender_id = $1)
-		)`
+		query := `SELECT MAX(id) FROM messages 
+			WHERE (sender_id = $1 AND receiver_id = $2) 
+   			OR (receiver_id = $1 AND sender_id = $2)`
 		err := db.QueryRow(query, userId, opponnentId).Scan(&offset)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -48,15 +54,16 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 			return
 		}
 	}
-
-	query := `SELECT sender_id, receiver_id, content, created_at 
-	FROM messages 
-	WHERE ((sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1)) 
-	AND id < $3 
+	fmt.Println("offset:", offset)
+	query := `SELECT m.id, u.nickname, m.sender_id, m.receiver_id, u.firstname, u.lastname, m.content, m.created_at 
+	FROM messages m
+	JOIN users u ON m.sender_id = u.id
+	WHERE ((m.sender_id = $1 AND m.receiver_id = $2) OR (m.sender_id = $2 AND m.receiver_id = $1)) 
+	AND m.id < $3
 	ORDER BY created_at DESC 
 	LIMIT 10;`
 
-	rows, err := db.Query(query, userId, opponnentId, offset)
+	rows, err := db.Query(query, userId, opponnentId, offset+1)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -66,24 +73,19 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 	var messages []Message
 	for rows.Next() {
 		var message Message
-		if err := rows.Scan(&message.SenderId, &message.ReceiverId, &message.Message, &message.CreatedAt); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			return
-		}
-		message.Sender, err = utils.GetUsername(db, message.SenderId)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			return
-		}
-		message.Receiver, err = utils.GetUsername(db, message.ReceiverId)
-		if err != nil {
+		var senderFirstName string
+		var senderLastName string
+		if err := rows.Scan(&message.Id, &message.Sender, &message.SenderId, &message.ReceiverId, &senderFirstName, &senderLastName, &message.Message, &message.CreatedAt); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
 		messages = append(messages, message)
 	}
-	utils.RespondWithJson(w, http.StatusOK, messages)
+	if len(messages) == 0 {
+		offset = -1
+	} else {
+		offset = messages[len(messages)-1].Id
+	}
+	utils.RespondWithJson(w, http.StatusOK, resp{Messages: messages, Offset: offset})
 }

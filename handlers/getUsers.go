@@ -20,7 +20,7 @@ type User struct {
 
 func GetUsers(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	query := `SELECT nickname, firstname, lastname FROM users 
-				JOIN messages ON users.id = messages.sender_id OR users.id = messages.receiver_id
+				LEFT JOIN messages ON users.id = messages.sender_id OR users.id = messages.receiver_id
 				WHERE users.id != ?
 				GROUP BY users.id 
 				ORDER BY messages.created_at DESC;`

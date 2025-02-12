@@ -1,10 +1,10 @@
 
 class ws{
     constructor(){
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8000/api/ws`);
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
         this.ws.onopen = (event)=> this.onopen.bind(this, event);
         this.ws.onmessage = this.onmessage.bind(this);
-        this.ws.onclose = this.onclose.bind(this);
+        this.initListeners();
     }
 
     onopen(){
@@ -16,7 +16,7 @@ class ws{
         let data = JSON.parse(event.data);
         switch(data.type){
             case "status":
-                let statusEvent = new Event('status'
+                let statusEvent = new CustomEvent('status'
                     , {
                         detail: {
                             user_name: data.user_name,
@@ -28,10 +28,12 @@ class ws{
                 document.dispatchEvent(statusEvent);
                 break;
             case "message":
-                chatEvent = new Event('message'
+                console.log(data);
+                let chatEvent = new CustomEvent('message'
                     , {
                         detail: {
-                            message: data.message,
+                            avatar: data.avatar,
+                            message: data.content,
                             sender: data.sender,
                             timeStamp: data.creation_date,
                         }
@@ -44,7 +46,7 @@ class ws{
                 console.log(`Error: ${data.message}`);
                 break;
             case "typing":
-                typingEvent = new Event('typing'
+                typingEvent = new CustomEvent('typing'
                     , {
                         detail: {
                             sender: data.sender,
@@ -56,4 +58,29 @@ class ws{
                 break;
         }
     }
+
+    initListeners(){
+        document.addEventListener('typing', (e) => {
+            this.ws.send(JSON.stringify({
+                type: "typing",
+                receiver: e.detail.username,
+            }));
+        });
+
+        document.addEventListener('sendmessage', (e) => {
+            console.log('About to send message:', {
+                receiver: e.detail.reciever,
+                content: e.detail.message,
+                timestamp: new Date().toISOString()
+            });
+            
+            this.ws.send(JSON.stringify({
+                type: "message",
+                receiver: e.detail.reciever,
+                content: e.detail.message
+            }));
+        });
+    }
 }
+
+export  {ws}

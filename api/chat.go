@@ -57,10 +57,12 @@ type StatusErr struct {
 
 /*---------- messages type ----------*/
 type Message struct {
-	Sender       string
+	Type         string `json:"type"`
+	Sender       string `json:"sender"`
 	Receiver     string `json:"receiver"`
-	Message      string `json:"message"`
+	Message      string `json:"content"`
 	CreationDate string `json:"creation_date"`
+	Avatar       string `json:"avatar"`
 }
 
 /*---------- upgrade connection from http to ws ----------*/
@@ -182,7 +184,7 @@ func (h *HubType) UnregisterClient(client Client) {
 }
 
 func (h *HubType) SendPrivateMessage(message Message) {
-	fmt.Println(message)
+	// fmt.Println(message)
 	h.Mu.Lock()
 	to, ok := h.Clients[message.Receiver]
 	if !ok {
@@ -267,14 +269,19 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 			fmt.Fprintln(os.Stderr, err)
 			break
 		}
-		message.Sender, _ = getUsername(db, userId)
-		if message.Receiver != "" {
-			message.CreationDate = time.Now().Format("2006-01-02 15:04:05")
-			if err := saveInDb(db, userId, message); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				break
+		if message.Type == "message" {
+			fmt.Printf("Raw received message: %+v\n", message) // Add this
+
+			message.Sender, _ = getUsername(db, userId)
+			if message.Receiver != "" {
+				message.CreationDate = time.Now().Format("2006-01-02 15:04:05")
+				fmt.Printf("Message before save: %+v\n", message) // Add this
+				if err := saveInDb(db, userId, message); err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					break
+				}
+				Hub.Private <- message
 			}
-			Hub.Private <- message
 		}
 	}
 }

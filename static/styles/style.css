@@ -675,15 +675,26 @@
     z-index: 100;
 }
 
+#backgroundOverlay {
+    display: none;
+}
+#commentsSection {
+    
+    display: none;
+}
 .post-details {
     padding: 15px;
     margin-bottom: 20px;
-    border-left: 2px solid #1877f2;
+    border-left: 6px solid #1877f2;
+    border-radius: 10px;
     background-color: rgba(190, 188, 188, 0.1);
-    /* border-radius: 10px; */
 }
 .post-details .post-body {
     padding-left: 20px;
+}
+.comments-title {
+    text-align: center;
+    margin: 20px 0;
 }
 
 .comments-container {
@@ -1204,7 +1215,8 @@ p.post-body {
 
 .comment-card {
     padding: 15px;
-    background-color: #f9f9f9;
+    /* background-color: #f9f9f9; */
+    background-color: #fff !important;
     border: 1px solid #ddd;
     border-radius: 5px;
 }

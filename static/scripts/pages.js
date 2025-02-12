@@ -218,8 +218,8 @@ async function ParseHomeTemplate(userData) {
                     </div>
 
                     <!-- Comments Modals -->
-                    <div class="background-overlay"></div>
-                    <section class="comments-section">
+                    <div class="background-overlay" id="backgroundOverlay"></div>
+                    <section class="comments-section" id="commentsSectionS">
                     <div class="comments-container">
                         <div class="comment-content">
                         <article class="post-details">

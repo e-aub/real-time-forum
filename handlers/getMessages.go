@@ -60,7 +60,7 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 	JOIN users u ON m.sender_id = u.id
 	WHERE ((m.sender_id = $1 AND m.receiver_id = $2) OR (m.sender_id = $2 AND m.receiver_id = $1)) 
 	AND m.id < $3
-	ORDER BY created_at DESC 
+	ORDER BY m.id DESC 
 	LIMIT 10;`
 
 	rows, err := db.Query(query, userId, opponnentId, offset+1)

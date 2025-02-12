@@ -42,7 +42,7 @@ class Chat extends status {
         const chatWindow = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
         this.chatWindowContainerHtmlElement.appendChild(chatWindow);
         this.chatWindows.set(user.username, { element: chatWindow, focused: true, isTyping: false });
-        this.loadOldMessages(user.username);
+        this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
 
@@ -157,8 +157,8 @@ class Chat extends status {
         chatWindow.appendChild(inputArea);
 
         messagesContainer.addEventListener('scroll', () => {
-            let chatWindow = this.chatWindows.get(username).element
-            if (chatWindow.scrollTop === 0) {
+            console.log(messagesContainer.scrollTop);
+            if (messagesContainer.scrollTop <= 20) {
                 console.log("load old messages...........................");
                 this.throtteledLoadOldMessages(username);
             }
@@ -282,7 +282,7 @@ class Chat extends status {
         }
     }
 
-    async loadOldMessages(username) {
+    async loadOldMessages(username, scroll = false) {
         let chatWindow = this.chatWindows.get(username);
         try {
             if (chatWindow.lastId === -1) {
@@ -296,7 +296,7 @@ class Chat extends status {
             console.log(data);
 
             chatWindow.lastId = data.offset;
-            this.appendMessages(username, data.messages);
+            this.appendMessages(username, data.messages, scroll);
             console.log(data);
 
         } catch (err) {
@@ -318,12 +318,14 @@ class Chat extends status {
 
     throtteledLoadOldMessages = this.throttle(this.loadOldMessages, 1000);
 
-    appendMessages(username, messages) {
+    appendMessages(username, messages, scroll) {
         let chatWindow = this.chatWindows.get(username);
         let chatContainer = chatWindow.element.querySelector('.chat-messages');
         messages.forEach(message => {
             chatContainer.prepend(this.#createMessageElement(username, message));
-            chatContainer.scroll(0, chatContainer.scrollHeight);
+            if (scroll){
+                chatContainer.scroll(0, chatContainer.scrollHeight);
+            }
         })
     }
 

@@ -33,7 +33,7 @@ func main() {
 	go api.Hub.PingService()
 	go middleware.CleanupLimiters()
 
-	fmt.Printf("Server running in 'http://localhost%s'\n", port)
+	fmt.Printf("Server running in 'http://%s'\n", port)
 	if err := http.ListenAndServe(port, mainMux); err != nil {
 		log.Fatal(err)
 	}

@@ -170,26 +170,40 @@ export class HomePage extends Page {
     }
 
     createPostElement(post) {
-        const postElement = document.createElement("article");
-        postElement.className = "post";
-        postElement.id = `post-${post.post_id}`;
-        postElement.innerHTML = `
-            <div class="post-header">
-                <img src="${post.avatar}" alt="${post.user_name}'s avatar">
-                <div class="post-header-info">
-                    <h4>${post.first_name} ${post.last_name}</h4>
-                    <div class="post-time">${this.formatTimestamp(post.created_at)}</div>
-                </div>
-                <div class="categories-container">
-                    ${post.categories.map(cat => `<span class="category-tag ${cat.toLowerCase()}">${cat}</span>`).join(" ")}
-                </div>
-            </div>
-            <pre class="post-content">${post.content}</pre>
-            <div class="post-actions">
-                <button class="post-action" onclick="handleLike('${post.post_id}')">👍 Like</button>
-                <button class="post-action" onclick="handleComment('${post.post_id}')">💬 Comment</button>
-            </div>
-        `;
+        /* create post header dom */
+        const image = newEl("img",{
+            "src":`${post.avatar}`,
+            "alt":`${post.user_name}'s avatar`
+        })
+        const fullName = newEl("h4",{},)
+        fullName.textContent = `${post.first_name} ${post.last_name}`
+        const postTime = newEl("div",{"class":`post-time`})
+        postTime.textContent = `${this.formatTimestamp(post.created_at)}`
+        const postHeaderInfo = newEl("div",{"class":`post-header-info`},fullName,postTime)
+        const categories = newEl("div", { "class": "categories-container" }, 
+            ...post.categories.map(cat => {
+                const span = newEl("span", { "class": `category-tag ${cat.toLowerCase()}` });
+                span.textContent = cat;
+                return span;
+            })
+        );
+        const postheader = newEl("div",{"class":`post-header`},image,postHeaderInfo,categories)
+
+        /* create post content dom */
+        const postContent = newEl("pre",{"class":`post-content`})
+        postContent.textContent = `${post.content}`
+
+        /* create post actions dom */
+        const likeButton = newEl("button",{"class": `post-action`})
+        const commentButton = newEl("button",{"class": `post-action`})
+        likeButton.textContent = `👍 Like`
+        commentButton.textContent = `💬 Comment`
+        const postActions = newEl("div", {"class":`post-actions`},likeButton,commentButton)
+
+        const postElement = newEl("article", {
+            "class":`post`,
+            "id": `post-${post.post_id}`
+        },postheader,postContent,postActions)
         return postElement;
     }
 
@@ -223,6 +237,24 @@ export class HomePage extends Page {
             console.error(error);
         }
     }
+}
+
+function newEl(name, attrs, ...childs) {
+    /* create new element */
+    const el = document.createElement(name);
+    /* add attrebutes to the element */
+    if (attrs != undefined) {
+        for (let attr of Object.keys(attrs)) {
+            el.setAttribute(attr,attrs[attr])
+        }
+    }
+    /* append childs to the element */
+    if (childs != undefined) {
+        for (let child of childs) {
+            el.appendChild(child)
+        }
+    }
+    return el
 }
 
 function handleLike(postId) {

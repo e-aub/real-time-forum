@@ -2,9 +2,18 @@
 class ws{
     constructor(){
         this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
-        this.ws.onopen = (event)=> this.onopen.bind(this, event);
+        this.ws.onopen = (event)=> this.onopen.bind(this);
         this.ws.onmessage = this.onmessage.bind(this);
+        this.ws.onerror = (event) => this.reconnect.bind(this);
         this.initListeners();
+    }
+
+    reconnect(event){
+        console.log("Reconnecting to WebSocket server");
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
+        this.ws.onopen = (event)=> this.onopen.bind(this);
+        this.ws.onmessage = this.onmessage.bind(this);
+        this.ws.onerror = (event) => this.reconnect.bind(this);
     }
 
     onopen(){
@@ -19,7 +28,7 @@ class ws{
                 let statusEvent = new CustomEvent('status'
                     , {
                         detail: {
-                            user_name: data.user_name,
+                            username: data.username,
                             online: data.online,
                         }
                     }
@@ -60,9 +69,10 @@ class ws{
     }
 
     initListeners(){
-        document.addEventListener('typing', (e) => {
+        document.addEventListener('sendtyping', (e) => {
             this.ws.send(JSON.stringify({
                 type: "typing",
+                is_typing: e.detail.is_typing,
                 receiver: e.detail.username,
             }));
         });
@@ -80,6 +90,7 @@ class ws{
                 content: e.detail.message
             }));
         });
+
     }
 }
 

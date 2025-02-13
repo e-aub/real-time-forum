@@ -8,8 +8,8 @@ class Chat extends status {
         this.usersListHtmlElement = null;
         this.chatWindows = new Map();
         this.chatList = new Map();
-        this.init();
         this.myData = myData;
+        this.init();
     }
 
     init() {
@@ -33,6 +33,14 @@ class Chat extends status {
                 let chatContainer =  this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages')
                chatContainer.appendChild(messageElement);
                chatContainer.scroll(0, chatContainer.scrollHeight);
+            }
+        });
+
+        document.addEventListener('typing', (e) => {
+            if (this.chatWindows.has(e.detail.receiver) && this.chatWindows.get(e.detail.receiver).focused) {
+                this.chatWindows.get(e.detail.receiver).isTyping = e.detail.is_typing;
+                let statusListElement = this.chatWindows.get(e.detail.receiver).element;
+
             }
         });
     }
@@ -108,6 +116,22 @@ class Chat extends status {
         const messagesContainer = document.createElement('div');
         messagesContainer.className = 'chat-messages';
         messagesContainer.id = `messages-${username}`;
+
+        // typing indicator
+
+        const typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('typingIndicator', 'message', 'received', 'hidden');
+        typingIndicator.appendChild(userAvatar);
+        const typingIndicatorContent = document.createElement('div');
+        typingIndicatorContent.classList.add('message-content')
+        typingIndicator.appendChild(typingIndicatorContent);
+        const typingIndocatorText = document.createElement('div');
+        typingIndocatorText.classList.add('message-text')
+        typingIndocatorText.textContent = 'is typing...';
+        typingIndicatorContent.appendChild(typingIndocatorText);
+
+
+        messagesContainer.appendChild(typingIndicator);
 
         //message input
         const inputArea = document.createElement('div');
@@ -262,12 +286,12 @@ class Chat extends status {
         let chatWindow = this.chatWindows.get(username);
         if (chatWindow.isTyping) {
             chatWindow.isTyping = false;
-            const event = new CustomEvent('typing', { detail: { username: username, isTyping: false } });
+            const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
             document.dispatchEvent(event);
             return;
         }
         chatWindow.isTyping = true;
-        const event = new CustomEvent('typing', { detail: { username: username, isTyping: true } });
+        const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: true } });
         document.dispatchEvent(event);
     }
 
@@ -332,7 +356,7 @@ class Chat extends status {
     #createMessageElement(username, message) {
         console.log("creating message elemnt:", message);
         const messageElement = document.createElement('div');
-        messageElement.classList.add('message', message.sender === username ? 'sent' : 'received');
+        messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
         let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);
         messageElement.innerHTML = `
          <img src="${avatar}" class="message-avatar" alt="${message.sender}">

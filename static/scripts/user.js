@@ -6,7 +6,7 @@ class User{
         this.avatar = data.avatar;
         this.chatListElement = null;
         this.conversationWindow = null;
-        this.statusListElement = null;
+        this.statusListElement  = data.statusListElement;
     }
     
     initEventListeners(){

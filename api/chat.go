@@ -24,6 +24,12 @@ type HubType struct {
 	Private    chan Message
 }
 
+type TypingMsg struct {
+	Type     string `json:"type"`
+	IsTyping bool   `json:"is_typing"`
+	Receiver string `json:"receiver"`
+}
+
 type Client struct {
 	Conns    []*websocket.Conn
 	UserId   int
@@ -33,7 +39,7 @@ type Client struct {
 /*---------- status tracking type ----------*/
 type Status struct {
 	Type     string `json:"type"`
-	UserName string `json:"user_name"`
+	UserName string `json:"username"`
 	Online   bool   `json:"online"`
 }
 
@@ -59,6 +65,7 @@ type StatusErr struct {
 type Message struct {
 	Type         string `json:"type"`
 	Sender       string `json:"sender"`
+	IsTyping     bool   `json:"is_typing"`
 	Receiver     string `json:"receiver"`
 	Message      string `json:"content"`
 	CreationDate string `json:"creation_date"`
@@ -279,7 +286,11 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 				}
 				Hub.Private <- message
 			}
-		} else if message.Type == "status" {
+		} else if message.Type == "typing" {
+			message.Sender, _ = getUsername(db, userId)
+			if message.Receiver != "" {
+				Hub.Private <- message
+			}
 		}
 	}
 }

@@ -10,8 +10,8 @@ export class HomePage extends Page {
         this.createPostPopup = null;
         this.maxId = null;
         this.userData = null;
+        this.Ws =  new ws();
     }
-    Ws = new ws();
     async render() {
         try {
             const response = await fetch("/api/authenticated");
@@ -61,6 +61,7 @@ export class HomePage extends Page {
 
         document.querySelector(".user-profile")?.addEventListener("click", async (e) => {
             if (e.target.classList.contains("logout-btn")) {
+                this.Ws.ws.close();
                 try {
                     const response = await fetch("/api/logout", { method: "POST" });
                     if (response.ok) this.navigate("/login");

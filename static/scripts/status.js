@@ -4,6 +4,7 @@ class status {
     constructor(){
         this.users = new Map();
         this.getUsers();
+        this.initListeners();
     }
     async getUsers(){
         try {
@@ -23,7 +24,10 @@ class status {
                     <div class="online-indicator ${user.online ? "" : "hidden"}"></div>
                 `;
                 usersList.appendChild(userListItem);
-                this.users.set(user.username, new User({...user, chatListElement: userListItem}));                
+                let usr = new User({...user,
+                    statusListElement: userListItem})
+                console.log("userrrr :",usr)
+                this.users.set(user.username, usr);                
             } );
             console.log(this.users);
         } catch (err) {
@@ -33,6 +37,18 @@ class status {
 
     updateStatus(){
         this.statusListElement.classList.toggle("hidden");
+    }
+
+    initListeners(){
+        document.addEventListener("status", (e) => {
+            console.log(e.detail);
+            let user = this.users.get(e.detail.username);
+            if (!user) return;
+            user.online = e.detail.online;
+            console.log(user,user.statusListElement)
+            let statusListElement = user.statusListElement.querySelector(".online-indicator");
+            statusListElement.classList.toggle("hidden", !e.detail.online);
+        });
     }
 }
 

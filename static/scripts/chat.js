@@ -30,9 +30,9 @@ class Chat extends status {
         document.addEventListener('message', (e) => {
             if (this.chatWindows.has(e.detail.sender)) {
                 let messageElement = this.#createMessageElement(e.detail.sender, e.detail);
-                let chatContainer =  this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages')
-               chatContainer.appendChild(messageElement);
-               chatContainer.scroll(0, chatContainer.scrollHeight);
+                let chatContainer = this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages')
+                chatContainer.appendChild(messageElement);
+                chatContainer.scroll(0, chatContainer.scrollHeight);
             }
         });
 
@@ -49,7 +49,7 @@ class Chat extends status {
         console.log(`Creating chat window for user ${user}`);
         const chatWindow = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
         this.chatWindowContainerHtmlElement.appendChild(chatWindow);
-        this.chatWindows.set(user.username, { element: chatWindow, focused: true, isTyping: false });
+        this.chatWindows.set(user.username, { element: chatWindow, focused: true, isTyping: false, typingTimeout: null });
         this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
@@ -151,14 +151,14 @@ class Chat extends status {
         messageInput.className = 'message-input';
         //enter send message event listener
 
-        messageInput.addEventListener('input', this.debouncedTypingHandler.bind(this, username));
+        messageInput.addEventListener('input', this.#typingHandler.bind(this, username));
 
         messageInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 if (!this.#messageValid(messageInput.value)) return;
-            this.sendMessage(messagesContainer, messageInput.value, username, avatar);
-            messageInput.value = '';
-            messageInput.focus();
+                this.sendMessage(messagesContainer, messageInput.value, username, avatar);
+                messageInput.value = '';
+                messageInput.focus();
             }
         });
         inputWrapper.appendChild(messageInput);
@@ -284,19 +284,20 @@ class Chat extends status {
         this.chatListContainerHtmlElement.prepend(chatListItem);
     }
 
-    debouncedTypingHandler = this.debounce(this.#TypingHandler, 1000);
 
-    #TypingHandler(username) {
+    #typingHandler(username) {
         let chatWindow = this.chatWindows.get(username);
-        if (chatWindow.isTyping) {
+        clearTimeout(chatWindow.typingTimeout);
+        if (!chatWindow.isTyping) {
+            chatWindow.isTyping = true;
+            const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: true } });
+            document.dispatchEvent(event);
+        }
+        chatWindow.typingTimeout = setTimeout(() => {
             chatWindow.isTyping = false;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
             document.dispatchEvent(event);
-            return;
-        }
-        chatWindow.isTyping = true;
-        const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: true } });
-        document.dispatchEvent(event);
+        }, 1000);
     }
 
 
@@ -351,7 +352,7 @@ class Chat extends status {
         let chatContainer = chatWindow.element.querySelector('.chat-messages');
         messages.forEach(message => {
             chatContainer.prepend(this.#createMessageElement(username, message));
-            if (scroll){
+            if (scroll) {
                 chatContainer.scroll(0, chatContainer.scrollHeight);
             }
         })
@@ -378,14 +379,16 @@ class Chat extends status {
     }
 
     sendMessage(messagesContainer, messageContent, username, avatar) {
-        let messageElement = this.#createMessageElement(username, { message: messageContent, avatar: avatar, creation_date:  new Date().toLocaleString('en-CA', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        }).replace(',', '') });
+        let messageElement = this.#createMessageElement(username, {
+            message: messageContent, avatar: avatar, creation_date: new Date().toLocaleString('en-CA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).replace(',', '')
+        });
         messagesContainer.appendChild(messageElement);
         messagesContainer.scroll(0, messagesContainer.scrollHeight);
 

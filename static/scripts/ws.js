@@ -55,10 +55,12 @@ class ws{
                 console.log(`Error: ${data.message}`);
                 break;
             case "typing":
-                typingEvent = new CustomEvent('typing'
+                console.log(data)
+                var typingEvent = new CustomEvent('typing'
                     , {
                         detail: {
                             sender: data.sender,
+                            typing: data.typing,
                         }
                     }
                 );

@@ -287,6 +287,7 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 				Hub.Private <- message
 			}
 		} else if message.Type == "typing" {
+			fmt.Println(message)
 			message.Sender, _ = getUsername(db, userId)
 			if message.Receiver != "" {
 				Hub.Private <- message

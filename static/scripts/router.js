@@ -3,15 +3,13 @@ import { LoginPage } from '/static/scripts/login.js';
 import { SignupPage } from '/static/scripts/signup.js';
 
 class Router {
-    constructor(routes = {}) {
-        this.routes = routes;
+    constructor(classes = {}) {
+        this.classes = classes
+        this.routes = {};
         this.initialize();
     }
 
-    add(routeName, callback) {
-        this.routes[routeName] = callback;
-    }
-
+  
     initialize() {
         window.addEventListener('popstate', () => this.route(location.pathname));
         this.route(location.pathname); 
@@ -28,19 +26,19 @@ class Router {
     }
 
     async route(routeName, updateHistory = true) {
-        const route = this.routes[routeName];
-        if (!route) return this.render404();
+        let clas = this.classes[routeName]
+        if (!clas) return this.render404();
 
         const authenticated = await this.isAuthenticated();
         if (!authenticated && routeName === '/') {
             routeName = '/login';
-            this.routes[routeName].render();
         }else if (authenticated && (routeName === '/login' || routeName === '/signup')) {
             routeName = '/';
-            this.routes[routeName].render();
-        }else{
-            this.routes[routeName].render();
         }
+
+        clas = this.classes[routeName]
+        this.routes[routeName] = new clas(); 
+        this.routes[routeName].render();
 
         if (updateHistory) {
             if (window.history.length > 1) {
@@ -61,9 +59,9 @@ class Router {
 }
 
 const router = new Router({
-    '/': new HomePage(),
-    '/login': new LoginPage(),
-    '/signup': new SignupPage(),
+    '/': HomePage,
+    '/login': LoginPage,
+    '/signup': SignupPage,
 });
 
 export { router };

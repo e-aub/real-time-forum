@@ -1,6 +1,10 @@
 import { router } from "/static/scripts/router.js";
 
 class Page {
+    constructor(){
+        this.router = router;
+    }
+        
     navigate(path) {
         router.route(path);
     }

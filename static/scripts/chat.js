@@ -297,7 +297,7 @@ class Chat extends status {
             chatWindow.isTyping = false;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
             document.dispatchEvent(event);
-        }, 1000);
+        }, 2000);
     }
 
 

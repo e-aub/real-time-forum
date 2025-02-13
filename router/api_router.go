@@ -24,6 +24,8 @@ func APIRouter(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /api/create_comment", middleware.Middleware(db, api.CreateComment))
 	router.Handle("GET /api/authenticated", middleware.Middleware(db, handlers.UserDataHandler))
 	router.HandleFunc("/api/ws", middleware.Middleware(db, api.Upgrade))
+	router.HandleFunc("GET /api/fetch-post/{id}", middleware.Middleware(db, api.FetchPost))
+	router.HandleFunc("GET /api/fetch-comments/{postId}", middleware.Middleware(db, api.FetchComments))
 	router.HandleFunc("GET /api/users", middleware.Middleware(db, handlers.GetUsers))
 	router.HandleFunc("GET /api/messages", middleware.Middleware(db, handlers.GetMessages))
 	return router

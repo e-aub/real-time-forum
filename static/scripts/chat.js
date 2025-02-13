@@ -121,7 +121,11 @@ class Chat extends status {
 
         const typingIndicator = document.createElement('div');
         typingIndicator.classList.add('typingIndicator', 'message', 'received', 'hidden');
-        typingIndicator.appendChild(userAvatar);
+        let userAvatarTyping = document.createElement('img');
+        userAvatarTyping.src = avatar;
+        userAvatarTyping.alt = username;
+        userAvatarTyping.className = 'message-avatar';
+        typingIndicator.append(userAvatarTyping);
         const typingIndicatorContent = document.createElement('div');
         typingIndicatorContent.classList.add('message-content')
         typingIndicator.appendChild(typingIndicatorContent);

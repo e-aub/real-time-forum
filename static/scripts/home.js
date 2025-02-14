@@ -9,6 +9,7 @@ export class HomePage extends Page {
     this.overlay = null;
     this.createPostPopup = null;
     this.maxId = null;
+    this.lastCommentId = 1000;
     this.userData = null;
     this.postData = null;
     this.Ws = new ws();
@@ -124,7 +125,7 @@ export class HomePage extends Page {
   }
 
 
-   handleComment(post,comments) {
+   async createPostCommentsPopup(post) {
     // Create post details
     const profileImg = newEl("img", {
       src: `${post.avatar}`,
@@ -151,36 +152,7 @@ export class HomePage extends Page {
       postBody
     );
     
-
-    // Create comment card
-    const commentProfileImg = newEl("img", {
-      src: "",
-      class: "profile-img",
-      alt: "profile image",
-    });
-
-    const commentUsername = newEl("p", { class: "profile-username" });
-    commentUsername.textContent = "Yassine Rahhaoui";
-
-    const commentHeader = newEl(
-      "header",
-      { class: "comment-header" },
-      commentProfileImg,
-      commentUsername
-    );
-
-    const commentBody = newEl("p", { class: "comment-body" });
-    commentBody.textContent =
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam!";
-
-    const commentCard = newEl(
-      "article",
-      { class: "comment-card" },
-      commentHeader,
-      commentBody
-    );
-
-    const commentList = newEl("div", { class: "comment-list" }, commentCard);
+    const commentList = newEl("div", { class: "comment-list" });
 
     // Create comment content container
     const commentContent = newEl(
@@ -226,13 +198,16 @@ export class HomePage extends Page {
     );
 
     // Create main container and append everything
-    const commentContainer = newEl(
+    const postContainer = newEl(
       "div",
       { class: "comments-container" },
       commentContent,
       commentForm
     );
-    return commentContainer;
+
+    await this.getComments(post.post_id, commentList);
+
+    document.getElementById("commentsSection").appendChild(postContainer);
   }
 
   toggleHidden(elements) {
@@ -299,9 +274,56 @@ export class HomePage extends Page {
     return true;
   }
 
+  async getComments(postId, commentsContainer) {
+      try {
+          const params =  new URLSearchParams({
+              post_id: postId,
+              offset: this.lastCommentId,
+          })
+          const response = await fetch(`/api/comments?${params.toString()}`);
+          if (!response.ok) throw new Error("Error fetching comments");
+          const data = await response.json();
+          this.lastCommentId = data.id;
+          for (const comment of data.comments) {
+             this.createCommentElement(comment, commentsContainer);
+          }
+      }catch (error) {
+          console.error(error);
+      }
+  }
+
   displayError(message) {
     let errDiv = document.querySelector(".error-text");
     errDiv.textContent = message;
+  }
+
+  createCommentElement(comment, commentsContainer) {
+    const commentProfileImg = newEl("img", {
+      src: comment.avatar,
+      class: "profile-img",
+      alt: "profile image",
+    });
+
+    const commentUsername = newEl("p", { class: "profile-username" });
+    commentUsername.textContent = `${comment.first_name} ${comment.last_name}`;
+
+    const commentHeader = newEl(
+      "header",
+      { class: "comment-header" },
+      commentProfileImg,
+      commentUsername
+    );
+
+    const commentBody = newEl("p", { class: "comment-body" });
+    commentBody.textContent = comment.content;
+
+    const commentCard = newEl(
+      "article",
+      { class: "comment-card" },
+      commentHeader,
+      commentBody
+    );
+    commentsContainer.appendChild(commentCard);
   }
 
   createPostElement(post) {
@@ -358,10 +380,11 @@ export class HomePage extends Page {
       commentButton
     );
     commentButton.onclick = (e) => {
+      console.log("comment button clicked");
       document.querySelector("#backgroundOverlay").style.display = "block";
       const section = document.querySelector("#commentsSection")
       section.style.display = "block";
-      section.appendChild(this.handleComment(post))
+      section.appendChild(this.createPostCommentsPopup(post));
     };
 
     const postElement = newEl(

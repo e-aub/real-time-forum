@@ -16,7 +16,6 @@ class Chat extends status {
         this.chatWindowContainerHtmlElement = document.querySelector('.chat-container');
         this.chatListContainerHtmlElement = document.querySelector('.chat-list .user-list');
         this.usersListHtmlElement = document.querySelector('.users-list');
-        console.log("chat list :", this.chatListContainerHtmlElement);
 
         this.usersListHtmlElement.addEventListener('click', (e) => {
             if (e.target.parentNode.classList.contains('user-item')) {
@@ -224,7 +223,6 @@ class Chat extends status {
     }
 
     hideChatWindow(user) {
-        console.log("Hiding chat window for user", user.username);
         let chatWindow = this.chatWindows.get(user.username);
         if (chatWindow) {
             this.pushToChatList(user);
@@ -242,11 +240,7 @@ class Chat extends status {
     }
 
     pushToChatList(user) {
-        console.log(user);
-        console.log(this.chatList.has(user.username));
-
         if (!this.chatList.has(user.username)) {
-            console.log("push to chat list");
             if (this.chatList.size > 10) {
                 let firstChatListItem = Array.from(this.chatWindows.keys())[0];
                 this.popFromChatList(firstChatListItem);

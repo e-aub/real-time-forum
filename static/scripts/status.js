@@ -41,7 +41,6 @@ class status {
 
     initListeners(){
         document.addEventListener("status", (e) => {
-            console.log(e.detail);
             let user = this.users.get(e.detail.username);
             if (!user) return;
             user.online = e.detail.online;

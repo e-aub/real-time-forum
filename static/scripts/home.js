@@ -124,19 +124,16 @@ export class HomePage extends Page {
   }
 
 
-   handleComment(post) {
-    // const data = await this.fetchPost(postId) 
-    console.log(post);
-    
+   handleComment(post,comments) {
     // Create post details
     const profileImg = newEl("img", {
-      src: "",
+      src: `${post.avatar}`,
       class: "profile-img",
       alt: "profile image",
     });
 
     const username = newEl("p", { class: "profile-username" });
-    username.textContent = "Yassine Rahhaoui";
+    username.textContent = `${post.first_name} ${post.last_name}`;
 
     const postHeader = newEl(
       "header",
@@ -146,7 +143,7 @@ export class HomePage extends Page {
     );
 
     const postBody = newEl("p", { class: "post-body" });
-    // postBody.textContent = `${data}`
+    postBody.textContent = `${post.content}`
     const postDetails = newEl(
       "article",
       { class: "post-details" },
@@ -362,8 +359,9 @@ export class HomePage extends Page {
     );
     commentButton.onclick = (e) => {
       document.querySelector("#backgroundOverlay").style.display = "block";
-      document.querySelector("#commentsSection").style.display = "block";
-      this.handleComment(post)
+      const section = document.querySelector("#commentsSection")
+      section.style.display = "block";
+      section.appendChild(this.handleComment(post))
     };
 
     const postElement = newEl(
@@ -410,23 +408,6 @@ export class HomePage extends Page {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async fetchPost(id) {
-    try {
-      const response = await fetch(`/api/fetch-post/${id}`)
-      if (!response.ok) {
-        if (response.status == 404) {
-          throw new Error("post not found");
-        } else if (response.status == 500) {
-          throw new Error("Internal server error");
-        }
-      }
-      const post = await response.json()
-      document.querySelector("")
-    } catch(err) {
-      console.log(err)
-    }    
   }
 }
 

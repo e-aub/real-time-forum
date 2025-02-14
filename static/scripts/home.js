@@ -10,18 +10,8 @@ export class HomePage extends Page {
     this.createPostPopup = null;
     this.maxId = null;
     this.userData = null;
-    this.Ws =  new ws();
-    document.addEventListener("DOMContentLoaded", () => {
-      document.addEventListener("click", (e) => {
-        if (e.target.classList.value.includes("post-comment")) {
-          this.handleComment(e.target.dataset.postid);
-        } else if (e.target.id == "backgroundOverlay") {
-          const overlay = document.querySelector("#backgroundOverlay");
-          overlay.style.display = "none";
-          document.querySelector("#commentsSection").style.display = "none";
-        }
-      });
-    });
+    this.postData = null;
+    this.Ws = new ws();
   }
 
   async render() {
@@ -58,9 +48,20 @@ export class HomePage extends Page {
     this.createPostPopup = document.querySelector(".create-post-popup");
     this.getPosts();
     this.setupEventListeners();
+    // this.handleComment()
+    const section = document.querySelector("#commentsSection");
+    // section.appendChild(this.cmnt);
   }
 
   setupEventListeners() {
+    // hide comments
+    document
+      .querySelector("#backgroundOverlay")
+      ?.addEventListener("click", (e) => {
+        e.target.style.display = "none";
+        document.querySelector("#commentsSection").style.display = "none";
+      });
+      
     document
       .getElementById("create-post-input")
       ?.addEventListener("click", () => {
@@ -77,34 +78,37 @@ export class HomePage extends Page {
       .getElementById("createPostForm")
       ?.addEventListener("submit", (e) => this.createPost(e));
 
-        document.querySelector(".user-profile")?.addEventListener("click", async (e) => {
-            if (e.target.classList.contains("logout-btn")) {
-                this.Ws.ws.close();
-                try {
-                    const response = await fetch("/api/logout", { method: "POST" });
-                    if (response.ok) this.navigate("/login");
-                } catch (error) {
-                    this.displayError("Logout failed.");
-                }
-            }
-            this.toggleHidden([document.querySelector(".profile-popup")]);
-        });
+    document
+      .querySelector(".user-profile")
+      ?.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("logout-btn")) {
+          this.Ws.ws.close();
+          try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            if (response.ok) this.navigate("/login");
+          } catch (error) {
+            this.displayError("Logout failed.");
+          }
+        }
+        this.toggleHidden([document.querySelector(".profile-popup")]);
+      });
 
-        let throttledGetPosts = this.throttle(this.getPosts.bind(this), 500)
-        document.addEventListener("scroll", ()=>{
-            
-            if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 10){
-                if(this.maxId <= 0){
-                    console.log("no more posts to show");
-                    return
-                }
-                console.log("SCROLL EVENT");
-                throttledGetPosts();
-            }
-        })
-        let chata = new Chat(this.userData);
-        // chata.init();
-    }
+    let throttledGetPosts = this.throttle(this.getPosts.bind(this), 500);
+    document.addEventListener("scroll", () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 10
+      ) {
+        if (this.maxId <= 0) {
+          console.log("no more posts to show");
+          return;
+        }
+        console.log("SCROLL EVENT");
+        throttledGetPosts();
+      }
+    });
+    let chata = new Chat(this.userData);
+  }
 
   throttle(func, limit) {
     let inThrottle = false;
@@ -117,6 +121,121 @@ export class HomePage extends Page {
         }, limit);
       }
     };
+  }
+
+
+   handleComment(post) {
+    // const data = await this.fetchPost(postId) 
+    console.log(post);
+    
+    // Create post details
+    const profileImg = newEl("img", {
+      src: "",
+      class: "profile-img",
+      alt: "profile image",
+    });
+
+    const username = newEl("p", { class: "profile-username" });
+    username.textContent = "Yassine Rahhaoui";
+
+    const postHeader = newEl(
+      "header",
+      { class: "post-header" },
+      profileImg,
+      username
+    );
+
+    const postBody = newEl("p", { class: "post-body" });
+    // postBody.textContent = `${data}`
+    const postDetails = newEl(
+      "article",
+      { class: "post-details" },
+      postHeader,
+      postBody
+    );
+    
+
+    // Create comment card
+    const commentProfileImg = newEl("img", {
+      src: "",
+      class: "profile-img",
+      alt: "profile image",
+    });
+
+    const commentUsername = newEl("p", { class: "profile-username" });
+    commentUsername.textContent = "Yassine Rahhaoui";
+
+    const commentHeader = newEl(
+      "header",
+      { class: "comment-header" },
+      commentProfileImg,
+      commentUsername
+    );
+
+    const commentBody = newEl("p", { class: "comment-body" });
+    commentBody.textContent =
+      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam!";
+
+    const commentCard = newEl(
+      "article",
+      { class: "comment-card" },
+      commentHeader,
+      commentBody
+    );
+
+    const commentList = newEl("div", { class: "comment-list" }, commentCard);
+
+    // Create comment content container
+    const commentContent = newEl(
+      "div",
+      { class: "comment-content" },
+      postDetails,
+      commentList
+    );
+
+    // Create comment form
+    const input = newEl("input", {
+      type: "text",
+      name: "comment",
+      class: "comment-input",
+      id: "comment",
+      placeholder: "Create your comment...",
+      autocomplete: "off",
+      required: "true",
+    });
+
+    const submitBtn = newEl("button", {
+      type: "submit",
+      class: "comment-btn",
+    });
+    submitBtn.textContent = "Send";
+
+    const formGroup = newEl(
+      "div",
+      { class: "comment-form-group" },
+      input,
+      submitBtn
+    );
+
+    const commentForm = newEl(
+      "form",
+      {
+        id: "comment-form",
+        class: "comment-form",
+        method: "POST",
+        novalidate: "true",
+      },
+      formGroup
+    );
+
+    // Create main container and append everything
+    const commentContainer = newEl(
+      "div",
+      { class: "comments-container" },
+      commentContent,
+      commentForm
+    );
+    return commentContainer;
   }
 
   toggleHidden(elements) {
@@ -188,43 +307,77 @@ export class HomePage extends Page {
     errDiv.textContent = message;
   }
 
-    createPostElement(post) {
-        /* create post header dom */
-        const image = newEl("img",{
-            "src":`${post.avatar}`,
-            "alt":`${post.user_name}'s avatar`
-        })
-        const fullName = newEl("h4",{},)
-        fullName.textContent = `${post.first_name} ${post.last_name}`
-        const postTime = newEl("div",{"class":`post-time`})
-        postTime.textContent = `${this.formatTimestamp(post.created_at)}`
-        const postHeaderInfo = newEl("div",{"class":`post-header-info`},fullName,postTime)
-        const categories = newEl("div", { "class": "categories-container" }, 
-            ...post.categories.map(cat => {
-                const span = newEl("span", { "class": `category-tag ${cat.toLowerCase()}` });
-                span.textContent = cat;
-                return span;
-            })
-        );
-        const postheader = newEl("div",{"class":`post-header`},image,postHeaderInfo,categories)
+  createPostElement(post) {
+    /* create post header dom */
+    const image = newEl("img", {
+      src: `${post.avatar}`,
+      alt: `${post.user_name}'s avatar`,
+    });
+    const fullName = newEl("h4", {});
+    fullName.textContent = `${post.first_name} ${post.last_name}`;
+    const postTime = newEl("div", { class: `post-time` });
+    postTime.textContent = `${this.formatTimestamp(post.created_at)}`;
+    const postHeaderInfo = newEl(
+      "div",
+      { class: `post-header-info` },
+      fullName,
+      postTime
+    );
+    const categories = newEl(
+      "div",
+      { class: "categories-container" },
+      ...post.categories.map((cat) => {
+        const span = newEl("span", {
+          class: `category-tag ${cat.toLowerCase()}`,
+        });
+        span.textContent = cat;
+        return span;
+      })
+    );
+    const postheader = newEl(
+      "div",
+      { class: `post-header` },
+      image,
+      postHeaderInfo,
+      categories
+    );
 
-        /* create post content dom */
-        const postContent = newEl("pre",{"class":`post-content`})
-        postContent.textContent = `${post.content}`
+    /* create post content dom */
+    const postContent = newEl("pre", { class: `post-content` });
+    postContent.textContent = `${post.content}`;
 
-        /* create post actions dom */
-        const likeButton = newEl("button",{"class": `post-action`})
-        const commentButton = newEl("button",{"class": `post-action`})
-        likeButton.textContent = `👍 Like`
-        commentButton.textContent = `💬 Comment`
-        const postActions = newEl("div", {"class":`post-actions`},likeButton,commentButton)
+    /* create post actions dom */
+    const likeButton = newEl("button", { class: `post-action` });
+    const commentButton = newEl("button", {
+      class: `post-action`,
+      "data-postid": `${post.post_id}`,
+    });
+    likeButton.textContent = `👍 Like`;
+    commentButton.textContent = `💬 Comment`;
+    const postActions = newEl(
+      "div",
+      { class: `post-actions` },
+      likeButton,
+      commentButton
+    );
+    commentButton.onclick = (e) => {
+      document.querySelector("#backgroundOverlay").style.display = "block";
+      document.querySelector("#commentsSection").style.display = "block";
+      this.handleComment(post)
+    };
 
-        const postElement = newEl("article", {
-            "class":`post`,
-            "id": `post-${post.post_id}`
-        },postheader,postContent,postActions)
-        return postElement;
-    }
+    const postElement = newEl(
+      "article",
+      {
+        class: `post`,
+        id: `post-${post.post_id}`,
+      },
+      postheader,
+      postContent,
+      postActions
+    );
+    return postElement;
+  }
 
   formatTimestamp(timestamp) {
     const date = new Date(timestamp);
@@ -238,7 +391,7 @@ export class HomePage extends Page {
 
   async getPosts() {
     try {
-      console.log(this.maxId);
+      // console.log(this.maxId);
       const queryParams = new URLSearchParams({ offset: this.maxId });
       const response = await fetch(`/api/posts?${queryParams}`);
       if (!response.ok) {
@@ -258,30 +411,151 @@ export class HomePage extends Page {
       console.error(error);
     }
   }
+
+  async fetchPost(id) {
+    try {
+      const response = await fetch(`/api/fetch-post/${id}`)
+      if (!response.ok) {
+        if (response.status == 404) {
+          throw new Error("post not found");
+        } else if (response.status == 500) {
+          throw new Error("Internal server error");
+        }
+      }
+      const post = await response.json()
+      document.querySelector("")
+    } catch(err) {
+      console.log(err)
+    }    
+  }
 }
+
+
 
 function newEl(name, attrs, ...childs) {
-    /* create new element */
-    const el = document.createElement(name);
-    /* add attrebutes to the element */
-    if (attrs != undefined) {
-        for (let attr of Object.keys(attrs)) {
-            el.setAttribute(attr,attrs[attr])
-        }
+  /* create new element */
+  const el = document.createElement(name);
+  /* add attrebutes to the element */
+  if (attrs != undefined) {
+    for (let attr of Object.keys(attrs)) {
+      el.setAttribute(attr, attrs[attr]);
     }
-    /* append childs to the element */
-    if (childs != undefined) {
-        for (let child of childs) {
-            el.appendChild(child)
-        }
+  }
+  /* append childs to the element */
+  if (childs != undefined) {
+    for (let child of childs) {
+      el.appendChild(child);
     }
-    return el
+  }
+  return el;
 }
 
+// function handleComment(postId) {
+//   // Create post details
+//   const profileImg = newEl("img", {
+//     src: "",
+//     class: "profile-img",
+//     alt: "profile image",
+//   });
+
+//   const username = newEl("p", { class: "profile-username" });
+//   username.textContent = "Yassine Rahhaoui";
+
+//   const postHeader = newEl(
+//     "header",
+//     { class: "post-header" },
+//     profileImg,
+//     username
+//   );
+
+//   const postBody = newEl("p", { class: "post-body" });
+//   postBody.textContent =
+//     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam! Placeat molestiae deleniti adipisci facilis accusantium enim, consectetur necessitatibus non. Tempora ad blanditiis harum tempore autem fugiat nihil velit dicta!";
+
+//   const postDetails = newEl(
+//     "article",
+//     { class: "post-details" },
+//     postHeader,
+//     postBody
+//   );
+
+//   // Create comment card
+//   const commentProfileImg = newEl("img", {
+//     src: "",
+//     class: "profile-img",
+//     alt: "profile image",
+//   });
+
+//   const commentUsername = newEl("p", { class: "profile-username" });
+//   commentUsername.textContent = "Yassine Rahhaoui";
+
+//   const commentHeader = newEl(
+//     "header",
+//     { class: "comment-header" },
+//     commentProfileImg,
+//     commentUsername
+//   );
+
+//   const commentBody = newEl("p", { class: "comment-body" });
+//   commentBody.textContent =
+//     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam!";
+
+//   const commentCard = newEl(
+//     "article",
+//     { class: "comment-card" },
+//     commentHeader,
+//     commentBody
+//   );
+
+//   const commentList = newEl("div", { class: "comment-list" }, commentCard);
+
+//   // Create comment content container
+//   const commentContent = newEl(
+//     "div",
+//     { class: "comment-content" },
+//     postDetails,
+//     commentList
+//   );
+
+//   // Create comment form
+//   const input = newEl("input", {
+//     type: "text",
+//     name: "comment",
+//     class: "comment-input",
+//     id: "comment",
+//     placeholder: "Create your comment...",
+//     autocomplete: "off",
+//     required: "true",
+//   });
+
+//   const submitBtn = newEl("button", {
+//     type: "submit",
+//     class: "comment-btn",
+//   });
+//   submitBtn.textContent = "Send";
+
+//   const formGroup = newEl("div", { class: "form-group" }, input, submitBtn);
+
+//   const commentForm = newEl(
+//     "form",
+//     {
+//       id: "comment-form",
+//       class: "comment-form",
+//       method: "POST",
+//       novalidate: "true",
+//     },
+//     formGroup
+//   );
+
+//   // Create main container and append everything
+//   const commentContainer = newEl(
+//     "div",
+//     { class: "comments-container" },
+//     commentContent,
+//     commentForm
+//   );
+//   document.getElementById("commentsSection").appendChild(commentContainer);
+// }
 function handleLike(postId) {
   console.log(`Liked post ${postId}`);
-}
-
-function handleComment(postId) {
-  console.log(`Comment on post ${postId}`);
 }

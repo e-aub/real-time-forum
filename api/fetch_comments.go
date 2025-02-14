@@ -20,7 +20,7 @@ func FetchComments(w http.ResponseWriter, r *http.Request, db *sql.DB, userId in
 		utils.JsonErr(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
 	}
-	query := `SELECT user_id,post_id,content,created_at FROM comments WHERE post_id = ?;`
+	query := `SELECT user_id,post_id,content,created_at FROM comments WHERE post_id = ? LIMIT = 10 OFFSET = 10;`
 	if err := db.QueryRow(query, post_id).Scan(&cm.UserId, &cm.PostId, &cm.Content, &cm.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			utils.JsonErr(w, http.StatusNoContent, http.StatusText(http.StatusNoContent))
@@ -33,6 +33,5 @@ func FetchComments(w http.ResponseWriter, r *http.Request, db *sql.DB, userId in
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cm); err != nil {
-		
 	}
 }

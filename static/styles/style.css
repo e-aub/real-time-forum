@@ -754,10 +754,11 @@
 #backgroundOverlay {
     display: none;
 }
+
 #commentsSection {
-    
     display: none;
 }
+
 .post-details {
     padding: 15px;
     margin-bottom: 20px;

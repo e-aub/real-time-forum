@@ -914,7 +914,7 @@ p.post-body {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .create-post-popup form {
@@ -1112,6 +1112,7 @@ p.post-body {
 }
 
 .chat-messages {
+    position: relative;
     flex: 1;
     overflow-y: auto;
     padding: 16px;
@@ -1348,3 +1349,49 @@ p.post-body {
 .form-group button:hover {
     background-color: #0056b3;
 }
+.typing-indicator {
+    opacity: 0;
+    display: none;
+    width: 100%;
+    gap: 8px;
+    align-items: flex-start;
+    max-width: 85%;
+    position: sticky;
+    bottom: 0;
+    order: 2147483647;
+}
+
+
+
+.typing-indicator .message-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.typing-indicator .message-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.typing-indicator .message-text {
+    background: #f0f2f5;
+    color: #050505;
+    padding: 8px 12px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.typing-indicator.visible {
+    opacity: 1;
+    display: flex;
+}
+
+.chat-messages {
+    position: relative;
+}
+
+

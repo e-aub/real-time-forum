@@ -30,16 +30,26 @@ class Chat extends status {
         document.addEventListener('message', (e) => {
             if (this.chatWindows.has(e.detail.sender)) {
                 let messageElement = this.#createMessageElement(e.detail.sender, e.detail);
-                let chatContainer = this.chatWindows.get(e.detail.sender).element.querySelector('.chat-messages')
+                let chatWindow = this.chatWindows.get(e.detail.sender)
+                clearTimeout(chatWindow.typingTimeout);
+                let chatContainer = chatWindow.messagesContainer;
+                let typingIndicator = chatWindow.typingIndicator;
+                typingIndicator.classList.remove('visible');
                 chatContainer.appendChild(messageElement);
                 chatContainer.scroll(0, chatContainer.scrollHeight);
             }
         });
 
         document.addEventListener('typing', (e) => {
-            if (this.chatWindows.has(e.detail.receiver) && this.chatWindows.get(e.detail.receiver).focused) {
-                this.chatWindows.get(e.detail.receiver).isTyping = e.detail.is_typing;
-                let statusListElement = this.chatWindows.get(e.detail.receiver).element;
+            let receiver = e.detail.sender;
+            let isTyping = e.detail.typing;
+            if (this.chatWindows.has(receiver) && this.chatWindows.get(receiver).focused) {
+                let messagesContainer = this.chatWindows.get(receiver).messagesContainer;
+
+                let typingIndicator = messagesContainer.querySelector('.typing-indicator');
+                typingIndicator.classList.toggle('visible', isTyping);
+ 
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             }
         });
@@ -47,9 +57,9 @@ class Chat extends status {
 
     createChatWindow(user) {
         console.log(`Creating chat window for user ${user}`);
-        const chatWindow = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
+        const [chatWindow, chatMessages, typingIndicator] = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
         this.chatWindowContainerHtmlElement.appendChild(chatWindow);
-        this.chatWindows.set(user.username, { element: chatWindow, focused: true, isTyping: false, typingTimeout: null });
+        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null });
         this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
@@ -120,7 +130,7 @@ class Chat extends status {
         // typing indicator
 
         const typingIndicator = document.createElement('div');
-        typingIndicator.classList.add('typingIndicator', 'message', 'received', 'hidden');
+        typingIndicator.classList.add('typing-indicator', 'message', 'received');
         let userAvatarTyping = document.createElement('img');
         userAvatarTyping.src = avatar;
         userAvatarTyping.alt = username;
@@ -134,8 +144,8 @@ class Chat extends status {
         typingIndocatorText.textContent = 'is typing...';
         typingIndicatorContent.appendChild(typingIndocatorText);
 
-
         messagesContainer.appendChild(typingIndicator);
+
 
         //message input
         const inputArea = document.createElement('div');
@@ -192,17 +202,13 @@ class Chat extends status {
             }
         });
 
-        return chatWindow;
+        return [chatWindow, messagesContainer, typingIndicator];
     }
 
     openChatWindow(user) {
-        console.log(this.chatWindows);
-
         if (!this.chatWindows.has(user.username)) {
             if (this.chatWindows.size > 3) {
-                console.log("mooooooore than")
                 let [firstChatWindow] = [...this.chatWindows][0];
-                console.log(firstChatWindow);
                 let opponnentUser = this.users.get(firstChatWindow);
                 this.hideChatWindow(opponnentUser);
             }
@@ -214,6 +220,7 @@ class Chat extends status {
             chatWindow.focused = true;
             chatWindow.element.style.display = 'flex';
         }
+        console.log(this.chatWindows);
     }
 
     hideChatWindow(user) {
@@ -297,7 +304,7 @@ class Chat extends status {
             chatWindow.isTyping = false;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
             document.dispatchEvent(event);
-        }, 2000);
+        }, 1000);
     }
 
 

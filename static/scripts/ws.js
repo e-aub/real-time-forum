@@ -21,7 +21,7 @@ class ws{
     }
 
     onmessage(event){
-        console.log(event.data);
+        // console.log(event.data);
         let data = JSON.parse(event.data);
         switch(data.type){
             case "status":
@@ -55,12 +55,12 @@ class ws{
                 console.log(`Error: ${data.message}`);
                 break;
             case "typing":
-                console.log(data)
+                // console.log(data)
                 var typingEvent = new CustomEvent('typing'
                     , {
                         detail: {
                             sender: data.sender,
-                            typing: data.typing,
+                            typing: data.is_typing,
                         }
                     }
                 );

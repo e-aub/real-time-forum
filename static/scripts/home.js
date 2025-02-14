@@ -11,6 +11,7 @@ export class HomePage extends Page {
     this.maxId = null;
     this.userData = null;
     this.Ws =  new ws();
+    this.chat = null;
     document.addEventListener("DOMContentLoaded", () => {
       document.addEventListener("click", (e) => {
         if (e.target.classList.value.includes("post-comment")) {
@@ -47,6 +48,8 @@ export class HomePage extends Page {
 
   async init() {
     try {
+      this.chat = new Chat(this.userData);
+
       const resp = await fetch("/api/max_post_id");
       if (!resp.ok) throw new Error("Error fetching max post ID");
       const data = await resp.json();
@@ -92,7 +95,6 @@ export class HomePage extends Page {
 
         let throttledGetPosts = this.throttle(this.getPosts.bind(this), 500)
         document.addEventListener("scroll", ()=>{
-            
             if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 10){
                 if(this.maxId <= 0){
                     console.log("no more posts to show");
@@ -102,7 +104,6 @@ export class HomePage extends Page {
                 throttledGetPosts();
             }
         })
-        let chata = new Chat(this.userData);
         // chata.init();
     }
 

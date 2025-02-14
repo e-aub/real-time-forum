@@ -50,7 +50,7 @@ export class HomePage extends Page {
     this.getPosts();
     this.setupEventListeners();
     // this.handleComment()
-    const section = document.querySelector("#commentsSection");
+    // const section = document.querySelector("#commentsSection");
     // section.appendChild(this.cmnt);
   }
 
@@ -207,7 +207,9 @@ export class HomePage extends Page {
 
     await this.getComments(post.post_id, commentList);
 
-    document.getElementById("commentsSection").appendChild(postContainer);
+    const section = document.getElementById("commentsSection")
+    section.textContent = ""
+    section.appendChild(postContainer);
   }
 
   toggleHidden(elements) {
@@ -384,7 +386,8 @@ export class HomePage extends Page {
       document.querySelector("#backgroundOverlay").style.display = "block";
       const section = document.querySelector("#commentsSection")
       section.style.display = "block";
-      section.appendChild(this.createPostCommentsPopup(post));
+      this.createPostCommentsPopup(post)
+      // section.appendChild();
     };
 
     const postElement = newEl(
@@ -408,6 +411,9 @@ export class HomePage extends Page {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return date.toLocaleDateString();
+  }
+  async createComment() {
+    
   }
 
   async getPosts() {

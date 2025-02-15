@@ -62,6 +62,7 @@ export class HomePage extends Page {
         e.target.style.display = "none";
         document.querySelector("#commentsSection").style.display = "none";
       });
+    
       
     document
       .getElementById("create-post-input")
@@ -78,6 +79,7 @@ export class HomePage extends Page {
     document
       .getElementById("createPostForm")
       ?.addEventListener("submit", (e) => this.createPost(e));
+
 
     document
       .querySelector(".user-profile")
@@ -178,6 +180,7 @@ export class HomePage extends Page {
       class: "comment-btn",
     });
     submitBtn.textContent = "Send";
+    submitBtn.dataset.postid = post.post_id;
 
     const formGroup = newEl(
       "div",
@@ -189,14 +192,14 @@ export class HomePage extends Page {
     const commentForm = newEl(
       "form",
       {
-        id: "comment-form",
+        id: "commentform",
         class: "comment-form",
         method: "POST",
         novalidate: "true",
       },
       formGroup
     );
-
+    commentForm.addEventListener("submit", (e) => this.createComment(e));
     // Create main container and append everything
     const postContainer = newEl(
       "div",
@@ -254,6 +257,43 @@ export class HomePage extends Page {
       this.displayError(error.message);
     }
   }
+  async createComment(event) {
+    event.preventDefault();
+    const form = event.target;
+    const content = form.querySelector(".comment-input")?.value.trim();
+    const postId = form.querySelector(".comment-btn").dataset.postid;
+    console.log(content, postId);
+    
+    if (!content) {
+      this.displayError("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/create_comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: parseInt(postId),content: content }),
+      });
+      let jsonResponse = await response.json();
+
+      if (!response.ok) {
+        throw new Error(jsonResponse.message || "Create comment error");
+      }
+      console.log("Comment created successfully");
+      form.reset();
+      
+      this.createCommentElement({
+        content: jsonResponse.content,
+        firstname: this.userData.firstname,
+        lastname: this.userData.lastname,
+        avatar: this.userData.avatar_url,
+      },document.querySelector(".comment-list"));
+      
+    } catch (error) {
+      this.displayError(error);
+    }
+  }
 
   getSelectedCategories(form) {
     return [...form.querySelectorAll("input[name='category']:checked")].map(
@@ -277,21 +317,21 @@ export class HomePage extends Page {
   }
 
   async getComments(postId, commentsContainer) {
-      try {
-          const params =  new URLSearchParams({
-              post_id: postId,
-              offset: this.lastCommentId,
-          })
-          const response = await fetch(`/api/comments?${params.toString()}`);
-          if (!response.ok) throw new Error("Error fetching comments");
-          const data = await response.json();
-          this.lastCommentId = data.id;
-          for (const comment of data.comments) {
-             this.createCommentElement(comment, commentsContainer);
-          }
-      }catch (error) {
-          console.error(error);
+    try {
+      const params =  new URLSearchParams({
+        post_id: postId,
+        offset: this.lastCommentId,
+      })
+      const response = await fetch(`/api/comments?${params.toString()}`);
+      if (!response.ok) throw new Error("Error fetching comments");
+      const data = await response.json();
+      this.lastCommentId = data.id;
+      for (const comment of data.comments) {
+        this.createCommentElement(comment, commentsContainer);
       }
+    }catch (error) {
+      console.error(error);
+    }
   }
 
   displayError(message) {
@@ -307,7 +347,7 @@ export class HomePage extends Page {
     });
 
     const commentUsername = newEl("p", { class: "profile-username" });
-    commentUsername.textContent = `${comment.first_name} ${comment.last_name}`;
+    commentUsername.textContent = `${comment.firstname} ${comment.lastname}`;
 
     const commentHeader = newEl(
       "header",
@@ -325,6 +365,7 @@ export class HomePage extends Page {
       commentHeader,
       commentBody
     );
+
     commentsContainer.appendChild(commentCard);
   }
 
@@ -412,9 +453,7 @@ export class HomePage extends Page {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return date.toLocaleDateString();
   }
-  async createComment() {
-    
-  }
+  
 
   async getPosts() {
     try {

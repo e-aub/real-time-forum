@@ -205,28 +205,27 @@ class Chat extends status {
     }
 
     openChatWindow(user) {
+        let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
+        const maxWindows = document.body.clientWidth < 700 ? 1 : Math.ceil((document.body.clientWidth - 700) / 320);
+    
+        if (focusedWindowsCount >= maxWindows) {
+            let opponentUser = this.users.get(firstWindowUserName);
+            this.hideChatWindow(opponentUser);
+        }
+    
         if (!this.chatWindows.has(user.username)) {
-            let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
-            if (focusedWindowsCount >= Math.ceil((document.body.clientWidth-700) / 320)) {
-                let opponnentUser = this.users.get(firstWindowUserName);
-                this.hideChatWindow(opponnentUser);
-            }
             this.popFromChatList(user);
             this.createChatWindow(user);
-        } else if (this.chatWindows.has(user.username) && !this.chatWindows.get(user.username).focused) {
-            let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
-
-            if (focusedWindowsCount > 3) {
-                let opponnentUser = this.users.get(firstWindowUserName);
-                this.hideChatWindow(opponnentUser);
-            }
+        } else {
             let chatWindow = this.chatWindows.get(user.username);
-            this.popFromChatList(user);
-            chatWindow.focused = true;
-            chatWindow.element.style.display = 'flex';
+            if (!chatWindow.focused) {
+                this.popFromChatList(user);
+                chatWindow.focused = true;
+                chatWindow.element.style.display = 'flex';
+            }
         }
-        console.log(this.chatWindows);
     }
+    
 
     getFocusedWindowsCount() {
         let focusedChatWindows = Array.from(this.chatWindows.entries()).filter(chatWindow => chatWindow[1].focused);

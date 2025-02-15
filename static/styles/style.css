@@ -4,6 +4,12 @@
     padding: 0;
 }
 
+body {
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+    background: #f0f2f5
+}
+
 .signup-container,
 .login-container {
     max-width: 500px;
@@ -261,13 +267,27 @@
     border-radius: 6px;
     cursor: pointer;
 }
+#app {
+    display: flex;
+    justify-content: end;
+    flex-direction: row;
+    width: 100%;
+    height: 100vh;
+}
+
 
 /* Container */
 .container {
-    max-width: 680px;
-    margin: 76px auto 20px;
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    margin: 70px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 0 16px;
 }
+
 
 /* Create Post */
 .create-post {
@@ -371,6 +391,20 @@
     line-height: 1.5;
     text-align: justify;
     white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+
+.create-post, .posts-feed {
+    width: 100%;
+    max-width: 680px;
+}
+
+
+.posts-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .post-actions {
@@ -431,15 +465,12 @@
 }
 /* Online Users */
 .users-list {
-    position: fixed;
-    right: 0;
-    top: 56px;
-    bottom: 0;
-    width: 280px;
-    background: white;
-    border-left: 1px solid #e4e6eb;
-    padding: 16px 8px;
+    width: 300px;
+    min-width: 300px;
+    height: 100%;
+    margin-top: 70px;
     overflow-y: auto;
+    border-left: 1px solid #e0e0e0;
 }
 
 
@@ -464,7 +495,7 @@
 }
 
 .user-item:hover {
-    background: #f0f2f5;
+    background: #dbe0e7;
 }
 
 .user-item img {
@@ -489,7 +520,7 @@
 
 .chat-list {
     position: fixed;
-    right: 280px;
+    right: 290px;
     bottom: 0;
     display: flex;
     flex-direction: column;
@@ -1394,4 +1425,183 @@ p.post-body {
     position: relative;
 }
 
+.mobile-menu-btn {
+    display: none;
+    align-items: center;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
 
+
+@media (max-width: 1200px) {
+    .create-post, .posts-feed {
+        max-width: 600px;
+    }
+    
+    .users-list {
+        width: 280px;
+        min-width: 280px;
+    }
+    
+    .chat-list {
+        right: 260px;
+    }
+    
+    .chat-container {
+        right: 320px;
+    }
+}
+
+@media (max-width: 992px) {
+    .create-post, .posts-feed {
+        max-width: 100%;
+    }
+    
+    .users-list {
+        width: 240px;
+        min-width: 240px;
+    }
+    
+    .chat-list {
+        right: 220px;
+    }
+    
+    .chat-container {
+        right: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    #app {
+        flex-direction: column;
+    }
+    
+    .container {
+        margin-top: 56px;
+    }
+
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
+    .users-list {
+        display: none; 
+        position: fixed;
+        /* top: 56px; */
+        margin-left: 70px;
+        right: 80;
+        width: 100%;
+        height: calc(100vh - 56px);
+        z-index: 99;
+        background: white;
+    }
+    
+    .users-list.active {
+        display: block;
+    }
+    
+    .chat-list {
+        right: auto;
+        left: 0; 
+        top: 57px; 
+        bottom: 0;
+        width: 70px; 
+        border-right: 1px solid #e0e0e0;
+        background: white;
+    }
+
+    .chat-list .user-list {
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 0;
+    }
+
+    .container {
+        margin-left: 70px;
+    }
+
+    .chat-container {
+        left: 70px;
+        right: 240px;
+    }
+    
+    .chat-window {
+        width: calc(100% - 70px);
+        height: calc(100vh - 56px);
+        position: fixed;
+        top: 56px;
+        left: 70px;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 0 8px;
+    }
+    
+    .post-header {
+        padding: 8px 12px;
+    }
+    
+    .post-content {
+        padding: 0 12px 8px;
+    }
+    
+    .create-post-popup form {
+        width: 95%;
+        margin: 10px auto;
+    }
+    
+    .comments-container {
+        width: 95%;
+        max-height: 95%;
+    }
+    
+    .header {
+        padding: 0 12px;
+    }
+}
+
+/* Chat window responsiveness */
+@media (max-width: 768px) {
+    .chat-container {
+        gap: 0;
+    }
+    
+    .chat-window {
+        margin: 0;
+        box-shadow: none;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+}
+
+/* Header responsiveness */
+@media (max-width: 576px) {
+    .logo {
+        height: 40px;
+    }
+    
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Post interactions responsiveness */
+@media (max-width: 480px) {
+    .post-action {
+        font-size: 13px;
+        padding: 4px 0;
+    }
+    
+    .category-tag {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}

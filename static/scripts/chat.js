@@ -206,20 +206,32 @@ class Chat extends status {
 
     openChatWindow(user) {
         if (!this.chatWindows.has(user.username)) {
-            if (this.chatWindows.size > 3) {
-                let [firstChatWindow] = [...this.chatWindows][0];
-                let opponnentUser = this.users.get(firstChatWindow);
+            let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
+            if (focusedWindowsCount >= Math.ceil((document.body.clientWidth-700) / 320)) {
+                let opponnentUser = this.users.get(firstWindowUserName);
                 this.hideChatWindow(opponnentUser);
             }
             this.popFromChatList(user);
             this.createChatWindow(user);
-        } else if (this.chatWindows.has(user.username) && !this.chatWindows?.get(user.username).focused) {
+        } else if (this.chatWindows.has(user.username) && !this.chatWindows.get(user.username).focused) {
+            let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
+
+            if (focusedWindowsCount > 3) {
+                let opponnentUser = this.users.get(firstWindowUserName);
+                this.hideChatWindow(opponnentUser);
+            }
             let chatWindow = this.chatWindows.get(user.username);
             this.popFromChatList(user);
             chatWindow.focused = true;
             chatWindow.element.style.display = 'flex';
         }
         console.log(this.chatWindows);
+    }
+
+    getFocusedWindowsCount() {
+        let focusedChatWindows = Array.from(this.chatWindows.entries()).filter(chatWindow => chatWindow[1].focused);
+        const count = focusedChatWindows.length;
+        return count > 0 ? [focusedChatWindows.length, focusedChatWindows[0][0]] : [0, null];
     }
 
     hideChatWindow(user) {
@@ -269,9 +281,6 @@ class Chat extends status {
         chatListItem.classList.add('user-item');
         chatListItem.dataset.username = `${user.firstname} ${user.lastname}`;
 
-        chatListItem.addEventListener('click', () => {
-            this.openChatWindow(user);
-        });
 
         chatListItem.innerHTML = `
             <img src="${user.avatar}" alt="${user.username}" class="user-avatar"/>

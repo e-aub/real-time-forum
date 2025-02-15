@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"forum/utils"
 	"net/http"
 	"os"
 	"strings"
+
+	"forum/utils"
 )
 
 type Post struct {

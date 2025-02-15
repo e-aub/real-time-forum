@@ -2,6 +2,7 @@ import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { status } from "/static/scripts/status.js";
 import { Chat } from "/static/scripts/chat.js";
 import { ws } from "/static/scripts/ws.js";
+import { formatTimestamp } from "/static/scripts/utils.js";
 
 export class HomePage extends Page {
   constructor() {
@@ -64,6 +65,10 @@ export class HomePage extends Page {
   }
 
   setupEventListeners() {
+    document.querySelector(".mobile-menu-btn").addEventListener("click", () => {
+        const usersList = document.querySelector('.users-list');
+        usersList.classList.toggle('active');
+    })
     document
       .getElementById("create-post-input")
       ?.addEventListener("click", () => {
@@ -198,7 +203,7 @@ export class HomePage extends Page {
         const fullName = newEl("h4",{},)
         fullName.textContent = `${post.first_name} ${post.last_name}`
         const postTime = newEl("div",{"class":`post-time`})
-        postTime.textContent = `${this.formatTimestamp(post.created_at)}`
+        postTime.textContent = `${formatTimestamp(post.created_at)}`
         const postHeaderInfo = newEl("div",{"class":`post-header-info`},fullName,postTime)
         const categories = newEl("div", { "class": "categories-container" }, 
             ...post.categories.map(cat => {
@@ -227,15 +232,7 @@ export class HomePage extends Page {
         return postElement;
     }
 
-  formatTimestamp(timestamp) {
-    const date = new Date(timestamp);
-    date.setTime(date.getTime() + 3600000);
-    const diff = Math.floor((Date.now() - date) / 1000);
-    if (diff < 60) return "Just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return date.toLocaleDateString();
-  }
+
 
   async getPosts() {
     try {

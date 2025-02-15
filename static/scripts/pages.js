@@ -147,6 +147,9 @@ const loginTemplate = `
 async function ParseHomeTemplate(userData) {    
     return `<div class="header">
                         <img class="logo" src="/static/images/logo.png" alt="talk" />
+                         <button class="mobile-menu-btn">
+                            <span>Contacts</span>
+                        </button>
                         <div class="user-profile">
                             <img src="${userData.avatar_url}" alt="User" class="user-avatar" />
                             <div class="profile-popup hidden" id="profilePopup">

@@ -5,6 +5,14 @@
     font-family: 'Arial', sans-serif;
 }
 
+
+.container {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+}
+
+
 .background-overlay {
     background-color: #000000cc;
     position: fixed;

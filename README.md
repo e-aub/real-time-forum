@@ -77,7 +77,7 @@ The **Real-Time Forum** is a fully functional web application that allows users 
     go run .
     ```
     OR
-    
+
     ```sh
     make install
     make serve
@@ -115,6 +115,6 @@ This project will help you learn about:
   - Database manipulation
 
 ## Authors
-    - Yasine Rahhaoui
-    - Ayoub Elhaddad
+- **Yasine Rahhaoui**
+- **Ayoub Elhaddad**
 

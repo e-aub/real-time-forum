@@ -56,15 +56,6 @@ The **Real-Time Forum** is a fully functional web application that allows users 
   - Sender's username
 - Instant message notifications without refreshing the page.
 
-## Application Structure
-
-```
-📂 project-root
- ├── 📁 backend  (Golang WebSockets & API)
- ├── 📁 frontend (JavaScript SPA, HTML, CSS)
- ├── 📁 database (SQLite database)
- ├── README.md  (Project Documentation)
-```
 
 ## Installation & Setup
 
@@ -72,7 +63,6 @@ The **Real-Time Forum** is a fully functional web application that allows users 
 
 - **Go** (Latest version)
 - **SQLite3**
-- **Node.js & npm**
 
 ### Steps
 

@@ -62,8 +62,7 @@ export class HomePage extends Page {
         e.target.style.display = "none";
         document.querySelector("#commentsSection").style.display = "none";
       });
-    
-      
+
     document
       .getElementById("create-post-input")
       ?.addEventListener("click", () => {
@@ -79,7 +78,6 @@ export class HomePage extends Page {
     document
       .getElementById("createPostForm")
       ?.addEventListener("submit", (e) => this.createPost(e));
-
 
     document
       .querySelector(".user-profile")
@@ -117,7 +115,7 @@ export class HomePage extends Page {
     let inThrottle = false;
     return (...args) => {
       if (!inThrottle) {
-        func.apply(this,args);
+        func.apply(this, args);
         inThrottle = true;
         setTimeout(() => {
           inThrottle = false;
@@ -126,8 +124,7 @@ export class HomePage extends Page {
     };
   }
 
-
-   async createPostCommentsPopup(post) {
+  async createPostCommentsPopup(post) {
     // Create post details
     const profileImg = newEl("img", {
       src: `${post.avatar}`,
@@ -146,14 +143,14 @@ export class HomePage extends Page {
     );
 
     const postBody = newEl("p", { class: "post-body" });
-    postBody.textContent = `${post.content}`
+    postBody.textContent = `${post.content}`;
     const postDetails = newEl(
       "article",
       { class: "post-details" },
       postHeader,
       postBody
     );
-    
+
     const commentList = newEl("div", { class: "comment-list" });
 
     // Create comment content container
@@ -163,18 +160,32 @@ export class HomePage extends Page {
       postDetails,
       commentList
     );
+    // let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
+    // commentContent.addEventListener("scroll", (e) => {
+    //   console.log(commentContent.style.height);
+
+    //   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+    //     if (this.lastCommentId <= 0) {
+    //       console.log("no more comments to show");
+    //       return;
+    //     }
+    //     console.log("scroll comments");
+    //     throttleGetComments(post.post_id, commentList);
+    //   }
+    // });
     let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
     commentContent.addEventListener("scroll", (e) => {
-      if (e.target.scrollTop >= commentContent.offsetHeight) {
+      const scrollElement = e.target;
+      if (scrollElement.scrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight) {
         if (this.lastCommentId <= 0) {
-          console.log("no more comments to show");
+          // console.log("no more comments to show");
           return;
         }
-        console.log("scroll comments");
+        // console.log("loading more comments");
         throttleGetComments(post.post_id, commentList);
       }
     });
-      
+
     // Create comment form
     const input = newEl("input", {
       type: "text",
@@ -219,15 +230,11 @@ export class HomePage extends Page {
       commentForm
     );
 
-
-
     await this.getComments(post.post_id, commentList);
-    
-    const section = document.getElementById("commentsSection")
-    section.textContent = ""
-    section.appendChild(postContainer);
 
-    
+    const section = document.getElementById("commentsSection");
+    section.textContent = "";
+    section.appendChild(postContainer);
   }
 
   toggleHidden(elements) {
@@ -277,8 +284,7 @@ export class HomePage extends Page {
     const form = event.target;
     const content = form.querySelector(".comment-input")?.value.trim();
     const postId = form.querySelector(".comment-btn").dataset.postid;
-    
-    
+
     if (!content) {
       this.displayError("Comment cannot be empty.");
       return;
@@ -290,7 +296,7 @@ export class HomePage extends Page {
       const response = await fetch("/api/create_comment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: parseInt(postId),content: content }),
+        body: JSON.stringify({ post_id: parseInt(postId), content: content }),
       });
       let jsonResponse = await response.json();
 
@@ -299,14 +305,17 @@ export class HomePage extends Page {
       }
       console.log("Comment created successfully");
       form.reset();
-      
-      this.createCommentElement({
-        content: jsonResponse.content,
-        firstname: this.userData.firstname,
-        lastname: this.userData.lastname,
-        avatar: this.userData.avatar_url,
-      },document.querySelector(".comment-list"),true);
-      
+
+      this.createCommentElement(
+        {
+          content: jsonResponse.content,
+          firstname: this.userData.firstname,
+          lastname: this.userData.lastname,
+          avatar: this.userData.avatar_url,
+        },
+        document.querySelector(".comment-list"),
+        true
+      );
     } catch (error) {
       this.displayError(error);
     }
@@ -335,19 +344,19 @@ export class HomePage extends Page {
 
   async getComments(postId, commentsContainer) {
     try {
-      const params =  new URLSearchParams({
+      const params = new URLSearchParams({
         post_id: postId,
         offset: this.lastCommentId,
-      })
+      });
       const response = await fetch(`/api/comments?${params.toString()}`);
       if (!response.ok) throw new Error("Error fetching comments");
       const data = await response.json();
-      
+
       this.lastCommentId = data.offset;
       for (const comment of data.comments) {
         this.createCommentElement(comment, commentsContainer);
       }
-    }catch (error) {
+    } catch (error) {
       console.error(error);
     }
   }
@@ -385,7 +394,7 @@ export class HomePage extends Page {
     );
     if (newcomment) {
       commentsContainer.prepend(commentCard);
-    }else {
+    } else {
       commentsContainer.appendChild(commentCard);
     }
   }
@@ -446,9 +455,9 @@ export class HomePage extends Page {
     commentButton.onclick = (e) => {
       console.log("comment button clicked");
       document.querySelector("#backgroundOverlay").style.display = "block";
-      const section = document.querySelector("#commentsSection")
+      const section = document.querySelector("#commentsSection");
       section.style.display = "block";
-      this.createPostCommentsPopup(post)
+      this.createPostCommentsPopup(post);
       // section.appendChild();
     };
 
@@ -474,7 +483,6 @@ export class HomePage extends Page {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return date.toLocaleDateString();
   }
-  
 
   async getPosts() {
     try {
@@ -499,8 +507,6 @@ export class HomePage extends Page {
     }
   }
 }
-
-
 
 function newEl(name, attrs, ...childs) {
   /* create new element */

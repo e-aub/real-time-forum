@@ -8,7 +8,7 @@ import (
 
 const imageApi = "https://avatar.iran.liara.run/username?username=%s+%s"
 
-func Contains(slice []string, item string) bool {
+func Contains(slice []string, item string) bool { // you can use slices.Contains
 	for _, v := range slice {
 		if v == item {
 			return true

@@ -117,7 +117,7 @@ export class HomePage extends Page {
     let inThrottle = false;
     return (...args) => {
       if (!inThrottle) {
-        func.apply(args);
+        func.apply(this,args);
         inThrottle = true;
         setTimeout(() => {
           inThrottle = false;
@@ -163,7 +163,18 @@ export class HomePage extends Page {
       postDetails,
       commentList
     );
-
+    let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
+    commentContent.addEventListener("scroll", (e) => {
+      if (e.target.scrollTop >= commentContent.offsetHeight) {
+        if (this.lastCommentId <= 0) {
+          console.log("no more comments to show");
+          return;
+        }
+        console.log("scroll comments");
+        throttleGetComments(post.post_id, commentList);
+      }
+    });
+      
     // Create comment form
     const input = newEl("input", {
       type: "text",
@@ -208,11 +219,15 @@ export class HomePage extends Page {
       commentForm
     );
 
-    await this.getComments(post.post_id, commentList);
 
+
+    await this.getComments(post.post_id, commentList);
+    
     const section = document.getElementById("commentsSection")
     section.textContent = ""
     section.appendChild(postContainer);
+
+    
   }
 
   toggleHidden(elements) {
@@ -327,7 +342,8 @@ export class HomePage extends Page {
       const response = await fetch(`/api/comments?${params.toString()}`);
       if (!response.ok) throw new Error("Error fetching comments");
       const data = await response.json();
-      this.lastCommentId = data.id;
+      
+      this.lastCommentId = data.offset;
       for (const comment of data.comments) {
         this.createCommentElement(comment, commentsContainer);
       }

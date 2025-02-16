@@ -196,11 +196,9 @@ class Chat extends status {
     }
 
     openChatWindow(user) {
-        console.log(this.chatWindows);
-
         if (!this.chatWindows.has(user.username)) {
             if (this.chatWindows.size > 3) {
-                console.log("mooooooore than")
+                // console.log("mooooooore than")
                 let [firstChatWindow] = [...this.chatWindows][0];
                 console.log(firstChatWindow);
                 let opponnentUser = this.users.get(firstChatWindow);

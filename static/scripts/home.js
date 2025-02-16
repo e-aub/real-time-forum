@@ -262,11 +262,13 @@ export class HomePage extends Page {
     const form = event.target;
     const content = form.querySelector(".comment-input")?.value.trim();
     const postId = form.querySelector(".comment-btn").dataset.postid;
-    console.log(content, postId);
+    
     
     if (!content) {
       this.displayError("Comment cannot be empty.");
       return;
+    } else if (content.length > 500) {
+      this.displayError("Comment is too long.");
     }
 
     try {
@@ -288,7 +290,7 @@ export class HomePage extends Page {
         firstname: this.userData.firstname,
         lastname: this.userData.lastname,
         avatar: this.userData.avatar_url,
-      },document.querySelector(".comment-list"));
+      },document.querySelector(".comment-list"),true);
       
     } catch (error) {
       this.displayError(error);
@@ -339,7 +341,7 @@ export class HomePage extends Page {
     errDiv.textContent = message;
   }
 
-  createCommentElement(comment, commentsContainer) {
+  createCommentElement(comment, commentsContainer, newcomment = false) {
     const commentProfileImg = newEl("img", {
       src: comment.avatar,
       class: "profile-img",
@@ -365,8 +367,11 @@ export class HomePage extends Page {
       commentHeader,
       commentBody
     );
-
-    commentsContainer.appendChild(commentCard);
+    if (newcomment) {
+      commentsContainer.prepend(commentCard);
+    }else {
+      commentsContainer.appendChild(commentCard);
+    }
   }
 
   createPostElement(post) {

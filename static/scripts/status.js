@@ -26,10 +26,10 @@ class status {
                 usersList.appendChild(userListItem);
                 let usr = new User({...user,
                     statusListElement: userListItem})
-                console.log("userrrr :",usr)
+                // console.log("userrrr :",usr)
                 this.users.set(user.username, usr);                
             } );
-            console.log(this.users);
+            // console.log(this.users);
         } catch (err) {
             console.error(err);
         } 
@@ -41,11 +41,11 @@ class status {
 
     initListeners(){
         document.addEventListener("status", (e) => {
-            console.log(e.detail);
+            // console.log(e.detail);
             let user = this.users.get(e.detail.username);
             if (!user) return;
             user.online = e.detail.online;
-            console.log(user,user.statusListElement)
+            // console.log(user,user.statusListElement)
             let statusListElement = user.statusListElement.querySelector(".online-indicator");
             statusListElement.classList.toggle("hidden", !e.detail.online);
         });

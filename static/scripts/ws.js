@@ -21,7 +21,7 @@ class ws{
     }
 
     onmessage(event){
-        console.log(event.data);
+        // console.log(event.data);
         let data = JSON.parse(event.data);
         switch(data.type){
             case "status":
@@ -33,11 +33,11 @@ class ws{
                         }
                     }
                 );
-                console.log(`User: ${data.user_name}, Online: ${data.online}`);
+                // console.log(`User: ${data.user_name}, Online: ${data.online}`);
                 document.dispatchEvent(statusEvent);
                 break;
             case "message":
-                console.log(data);
+                // console.log(data);
                 let chatEvent = new CustomEvent('message'
                     , {
                         detail: {
@@ -49,13 +49,13 @@ class ws{
                     }
                 );
                 document.dispatchEvent(chatEvent);
-                console.log(`Message from ${data.sender}: ${data.message}`);
+                // console.log(`Message from ${data.sender}: ${data.message}`);
                 break;
             case "error":
                 console.log(`Error: ${data.message}`);
                 break;
             case "typing":
-                console.log(data)
+                // console.log(data)
                 var typingEvent = new CustomEvent('typing'
                     , {
                         detail: {
@@ -65,7 +65,7 @@ class ws{
                     }
                 );
                 document.dispatchEvent(typingEvent);
-                console.log(`Message from ${data.sender}: ${data.message}`);
+                // console.log(`Message from ${data.sender}: ${data.message}`);
                 break;
         }
     }

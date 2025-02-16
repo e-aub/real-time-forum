@@ -160,19 +160,6 @@ export class HomePage extends Page {
       postDetails,
       commentList
     );
-    // let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
-    // commentContent.addEventListener("scroll", (e) => {
-    //   console.log(commentContent.style.height);
-
-    //   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
-    //     if (this.lastCommentId <= 0) {
-    //       console.log("no more comments to show");
-    //       return;
-    //     }
-    //     console.log("scroll comments");
-    //     throttleGetComments(post.post_id, commentList);
-    //   }
-    // });
     let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
     commentContent.addEventListener("scroll", (e) => {
       const scrollElement = e.target;
@@ -353,6 +340,10 @@ export class HomePage extends Page {
       const data = await response.json();
 
       this.lastCommentId = data.offset;
+      if (!data.comments) {
+        this.lastCommentId = 0;
+        return;
+      }
       for (const comment of data.comments) {
         this.createCommentElement(comment, commentsContainer);
       }
@@ -453,7 +444,7 @@ export class HomePage extends Page {
       commentButton
     );
     commentButton.onclick = (e) => {
-      console.log("comment button clicked");
+      // console.log("comment button clicked");
       document.querySelector("#backgroundOverlay").style.display = "block";
       const section = document.querySelector("#commentsSection");
       section.style.display = "block";

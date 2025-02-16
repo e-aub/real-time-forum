@@ -33,6 +33,8 @@ func FetchComments(w http.ResponseWriter, r *http.Request, db *sql.DB, userId in
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cm); err != nil {
-		
+		fmt.Fprintln(os.Stderr, err.Error())
+		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
 	}
 }

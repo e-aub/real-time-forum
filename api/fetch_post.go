@@ -32,5 +32,9 @@ func FetchPost(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(post)
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
+	}
 }

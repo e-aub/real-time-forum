@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"forum/api"
-	"forum/handlers"
 	"forum/middleware"
 	"forum/router"
 
@@ -27,7 +26,6 @@ func main() {
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter(db))
 	mainMux.Handle("/", router.WebRouter())
-	mainMux.HandleFunc("/ws", handlers.Test)
 
 	go api.Hub.Run()
 	go api.Hub.PingService()

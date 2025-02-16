@@ -42,7 +42,7 @@ class ws{
     ping(){
         if (this.ws.readyState === WebSocket.OPEN){
         this.ws.send(JSON.stringify({type: "ping"}));
-        console.log("Ping");
+        // console.log("Ping");
     }else{
         this.reconnect();
     }
@@ -93,7 +93,7 @@ class ws{
                 break;
             case "pong":
                 this.pongReceived = true;
-                console.log("Pong");
+                // console.log("Pong");
                 break;
         }
     }

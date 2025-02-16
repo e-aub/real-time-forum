@@ -72,8 +72,15 @@ The **Real-Time Forum** is a fully functional web application that allows users 
    cd real-time-forum
    ```
 2. Run project:
+    ```sh
     go mod tidy
     go run .
+    ```
+    OR
+    ```sh
+    make install
+    make serve
+    ```
 
 ## Allowed Packages
 
@@ -106,11 +113,7 @@ This project will help you learn about:
   - SQL language
   - Database manipulation
 
-## Contribution
-
-Feel free to contribute by submitting pull requests or reporting issues.
-
-## License
-
-This project is licensed under the MIT License.
+## Authors
+    - Yasine Rahhaoui
+    - Ayoub Elhaddad
 

@@ -984,7 +984,8 @@ p.post-body {
 }
 
 .message.received .message-text {
-    background: #f0f2f5;
+    background: #ffffff;
+    /* background: #f0f2f5; */
     color: #050505;
 }
 

@@ -32,9 +32,8 @@ export class HomePage extends Page {
       if (response.ok) {
         const data = await response.json();
         this.userData = data;
-        document.querySelector("#app").innerHTML = await ParseHomeTemplate(
-          data
-        );
+        this.switchCss("home-style");
+        document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
         this.overlay = document.querySelector(".overlay");
         await this.init();
       } else if (response.status === 401) {

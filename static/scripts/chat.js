@@ -62,7 +62,7 @@ class Chat extends status {
 
     createChatWindow(user) {
         const [chatWindow, chatMessages, typingIndicator] = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
-        this.chatWindowContainerHtmlElement.appendChild(chatWindow);
+        this.chatWindowContainerHtmlElement.prepend(chatWindow);
         this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null });
         this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
@@ -210,22 +210,26 @@ class Chat extends status {
     openChatWindow(user) {
         let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
         const maxWindows = document.body.clientWidth < 700 ? 1 : Math.ceil((document.body.clientWidth - 700) / 320);
-    
-        if (focusedWindowsCount >= maxWindows) {
-            let opponentUser = this.users.get(firstWindowUserName);
-            this.hideChatWindow(opponentUser);
-        }
+        let hide = false;
+     
     
         if (!this.chatWindows.has(user.username)) {
             this.popFromChatList(user);
             this.createChatWindow(user);
+            hide = true;
         } else {
             let chatWindow = this.chatWindows.get(user.username);
             if (!chatWindow.focused) {
                 this.popFromChatList(user);
+                this.chatWindowContainerHtmlElement.prepend(chatWindow.element);
                 chatWindow.focused = true;
                 chatWindow.element.style.display = 'flex';
+                hide = true;
             }
+        }
+        if (focusedWindowsCount >= maxWindows && hide) {
+            let opponentUser = this.users.get(firstWindowUserName);
+            this.hideChatWindow(opponentUser);
         }
     }
     

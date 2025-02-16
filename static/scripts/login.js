@@ -115,29 +115,30 @@ export class LoginPage extends Page {
         }
     }
 
-    render() {
-        document.querySelector("#app").innerHTML = loginTemplate;
-        const form = document.getElementById('loginForm');
-        const emailInput = form.querySelector('input[name="login_name"]');
-        const passwordInput = form.querySelector('input[name="password"]');
-        const signUpLink = document.getElementById('sign-up-link');
-
-        emailInput.addEventListener('input', (e) => {
-
-            this.updateFormValidity()
-            this.debounceValidation('login_name', e.target.value);
-        });
-
-        passwordInput.addEventListener('input', (e) => {
-            this.updateFormValidity()
-            this.debounceValidation('password', e.target.value);
-        });
-
-        form.addEventListener('submit', (e) => this.handleLogin(e));
-
-        signUpLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.navigate('/signup');
-        });
+    async render() {
+            this.switchCss("login-style");
+            document.querySelector("#app").innerHTML = loginTemplate;
+            const form = document.getElementById('loginForm');
+            const emailInput = form.querySelector('input[name="login_name"]');
+            const passwordInput = form.querySelector('input[name="password"]');
+            const signUpLink = document.getElementById('sign-up-link');
+    
+            emailInput.addEventListener('input', (e) => {
+    
+                this.updateFormValidity()
+                this.debounceValidation('login_name', e.target.value);
+            });
+    
+            passwordInput.addEventListener('input', (e) => {
+                this.updateFormValidity()
+                this.debounceValidation('password', e.target.value);
+            });
+    
+            form.addEventListener('submit', (e) => this.handleLogin(e));
+    
+            signUpLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigate('/signup');
+            });
     }
 }

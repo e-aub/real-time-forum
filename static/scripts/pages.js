@@ -1,12 +1,27 @@
 import { router } from "/static/scripts/router.js";
 
 class Page {
-    constructor(){
+    constructor() {
         this.router = router;
     }
-        
+
     navigate(path) {
         router.route(path);
+    }
+
+    switchCss(id) {
+        let styles = document.querySelectorAll('link[rel="stylesheet"]');
+        
+        styles.forEach(style => {
+            console.log(style.disabled);
+            
+            if (style.id === id) {
+                style.disabled = false;
+            } else {
+                style.disabled = true;
+            }
+        }
+        )
     }
 }
 
@@ -144,82 +159,88 @@ const loginTemplate = `
                         <a href="/signup" class="home-link" id="sign-up-link">Create an account</a>
                     </div>
                 `;
-async function ParseHomeTemplate(userData) {    
+async function ParseHomeTemplate(userData) {
+    document.querySelector("link[rel='stylesheet']")?.remove();
+    let link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/static/styles/home.css';
+    document.head.appendChild(link);
     return `<div class="header">
-                        <img class="logo" src="/static/images/logo.png" alt="talk" />
-                         <button class="mobile-menu-btn">
-                            <span>Contacts</span>
-                        </button>
-                        <div class="user-profile">
-                            <img src="${userData.avatar_url}" alt="User" class="user-avatar" />
-                            <div class="profile-popup hidden" id="profilePopup">
-                                <button class="logout-btn">Logout</button>
-                            </div>
-                        </div>
+        <img class="logo" src="/static/images/logo.png" alt="talk" />
+         <button class="mobile-menu-btn">
+            <span>👤Contacts</span>
+        </button>
+        <div class="user-profile">
+            <img src="${userData.avatar_url}" alt="User" class="user-avatar" />
+            <div class="profile-popup hidden" id="profilePopup">
+                <button class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </div>
+    <div class="overlay hidden"></div>
+    <div class="container">
+        <div class="create-post">
+            <div class="create-post-body">
+                <div class="create-post-input">
+                    <img src="${userData.avatar_url}" alt="User" class="user-avatar"/>
+                    <input type="text" id="create-post-input" placeholder="What's on your mind, ${userData.firstname} ?" readonly />
+                </div>
+            </div>
+            <div class="create-post-popup hidden">
+                <form id="createPostForm">
+                    <div class="form-group">
+                        <textarea name="content" class="form-input" placeholder="What's on your mind, ${userData.firstname} ?" minlength="1" maxlength="1000" required></textarea>
                     </div>
-                    <div class="overlay hidden"></div>
-                    <div class="container">
-                        <div class="create-post">
-                            <div class="create-post-body">
-                                <div class="create-post-input">
-                                    <img src="${userData.avatar_url}" alt="User" class="user-avatar"/>
-                                    <input type="text" id="create-post-input" placeholder="What's on your mind, ${userData.firstname} ?" readonly />
-                                </div>
-                            </div>
-                            <div class="create-post-popup hidden">
-                                <form id="createPostForm">
-                                    <div class="form-group">
-                                        <textarea name="content" class="form-input" placeholder="What's on your mind, ${userData.firstname} ?" minlength="1" maxlength="1000" required></textarea>
-                                    </div>
-                                    <div class="categories">
-                                        <label for="funny">Funny
-                                        <input id="funny" type="checkbox" name="category" value="funny">
-                                        </label>
-                                        <label for="help">Help
-                                        <input id="help" type="checkbox" name="category" value="help">
-                                        </label>
-                                        <label for="science">Science
-                                        <input id="science" type="checkbox" name="category" value="science">
-                                        </label>
-                                        <label for="entertainment">Entertainment
-                                        <input id="entertainment" type="checkbox" name="category" value="entertainment">
-                                        </label>
-                                        <label for="random">Random
-                                        <input id="random" type="checkbox" name="category" value="random">
-                                        </label>
-                                    </div>
-                                    <div class="error-text" id="create-post-error"></div>
-                                    <button type="submit" class="create-post-button">Post</button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="posts-feed">
-                            <!-- Posts will be dynamically added here -->
-                        </div>
+                    <div class="categories">
+                        <label for="funny">Funny
+                        <input id="funny" type="checkbox" name="category" value="funny">
+                        </label>
+                        <label for="help">Help
+                        <input id="help" type="checkbox" name="category" value="help">
+                        </label>
+                        <label for="science">Science
+                        <input id="science" type="checkbox" name="category" value="science">
+                        </label>
+                        <label for="entertainment">Entertainment
+                        <input id="entertainment" type="checkbox" name="category" value="entertainment">
+                        </label>
+                        <label for="random">Random
+                        <input id="random" type="checkbox" name="category" value="random">
+                        </label>
                     </div>
+                    <div class="error-text" id="create-post-error"></div>
+                    <button type="submit" class="create-post-button">Post</button>
+                </form>
+            </div>
+        </div>
 
-                    <div class="users-list">
-                        <h3>Contacts</h3>
-                        <ul class="user-list">
-                            <!-- Users will be dynamically added here -->
-                        </ul>
-                    </div>
+        <div class="posts-feed">
+            <!-- Posts will be dynamically added here -->
+        </div>
+    </div>
 
-                    <div class="chat-list">
-                        <ul class="user-list">
-                            <!-- Chats will be dynamically added here -->
-                        </ul>
-                    </div>
+    <div class="users-list">
+        <h3>Contacts</h3>
+        <ul class="user-list">
+            <!-- Users will be dynamically added here -->
+        </ul>
+    </div>
 
-                    <!-- Modals -->
-                    <div class="modal comments-modal" id="commentsModal">
-                        <!-- Comments modal content -->
-                    </div>
+    <div class="chat-list">
+        <ul class="user-list">
+            <!-- Chats will be dynamically added here -->
+        </ul>
+    </div>
 
-                    <div class="chat-container">
-                        <!-- chat windows wil be addede here -->
-                    </div>`;
+    <!-- Modals -->
+    <div class="modal comments-modal" id="commentsModal">
+        <!-- Comments modal content -->
+    </div>
+
+    <div class="chat-container">
+        <!-- chat windows wil be addede here -->
+    </div>`;
 }
 
 

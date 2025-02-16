@@ -172,6 +172,12 @@ func (h *HubType) RegisterClient(client Client) bool {
 func (h *HubType) UnregisterClient(client Client) {
 	h.Mu.Lock()
 	defer h.Mu.Unlock()
+
+	if len(client.Conns) == 0 {
+		delete(h.Clients, client.Username)
+		return
+	}
+
 	cl := h.Clients[client.Username]
 	var updatedConns []*websocket.Conn
 	for _, conn := range cl.Conns {
@@ -255,6 +261,8 @@ func getUsername(db *sql.DB, userId int) (string, error) {
 }
 
 func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
+	userName, _ := getUsername(db, userId)
+
 	conn.SetReadDeadline(time.Now().Add(time.Second * 30))
 
 	conn.SetPongHandler(func(appData string) error {
@@ -267,8 +275,15 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 		return nil
 	})
 
+	conn.SetPingHandler(func(appData string) error {
+		err := conn.WriteControl(websocket.PongMessage, []byte{}, time.Now().Add(time.Second*1))
+		if err != nil {
+			conn.SetWriteDeadline(time.Now().Add(time.Second * 1))
+		}
+		return nil
+	})
+
 	fmt.Println("Connected:", conn.RemoteAddr())
-	userName, _ := getUsername(db, userId)
 	for {
 		var message Message
 		if err := conn.ReadJSON(&message); err != nil {
@@ -292,6 +307,10 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 			if message.Receiver != "" {
 				Hub.Private <- message
 			}
+		} else if message.Type == "ping" {
+			message.Type = "pong"
+			message.Receiver = userName
+			Hub.Private <- message
 		}
 	}
 }

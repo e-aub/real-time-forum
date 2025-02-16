@@ -102,10 +102,8 @@ export class HomePage extends Page {
         document.addEventListener("scroll", ()=>{
             if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 10){
                 if(this.maxId <= 0){
-                    console.log("no more posts to show");
                     return
                 }
-                console.log("SCROLL EVENT");
                 throttledGetPosts();
             }
         })
@@ -149,7 +147,6 @@ export class HomePage extends Page {
         throw new Error(jsonResponse.message || "Create post error");
       }
 
-      console.log("Post created successfully");
       form.reset();
       const postData = {
         post_id: jsonResponse.post_id,
@@ -236,7 +233,6 @@ export class HomePage extends Page {
 
   async getPosts() {
     try {
-      console.log(this.maxId);
       const queryParams = new URLSearchParams({ offset: this.maxId });
       const response = await fetch(`/api/posts?${queryParams}`);
       if (!response.ok) {
@@ -277,9 +273,7 @@ function newEl(name, attrs, ...childs) {
 }
 
 function handleLike(postId) {
-  console.log(`Liked post ${postId}`);
 }
 
 function handleComment(postId) {
-  console.log(`Comment on post ${postId}`);
 }

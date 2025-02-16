@@ -18,11 +18,17 @@ class Chat extends status {
         this.usersListHtmlElement = document.querySelector('.users-list');
 
         this.usersListHtmlElement.addEventListener('click', (e) => {
+            let toggleHidden = false;
             if (e.target.parentNode.classList.contains('user-item')) {
                 this.openChatWindow(this.users.get(e.target.parentNode.dataset.username));
+                toggleHidden = true;
             } else if (e.target.classList.contains('user-item')) {
-                console.log(this.users.get(e.target.dataset.username).username);
                 this.openChatWindow(this.users.get(e.target.dataset.username));
+                toggleHidden = true;
+            }
+
+            if (toggleHidden) {
+                this.usersListHtmlElement.classList.toggle('active');
             }
         });
 
@@ -55,7 +61,6 @@ class Chat extends status {
     }
 
     createChatWindow(user) {
-        console.log(`Creating chat window for user ${user}`);
         const [chatWindow, chatMessages, typingIndicator] = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
         this.chatWindowContainerHtmlElement.appendChild(chatWindow);
         this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null });
@@ -194,9 +199,7 @@ class Chat extends status {
         chatWindow.appendChild(inputArea);
 
         messagesContainer.addEventListener('scroll', () => {
-            console.log(messagesContainer.scrollTop);
             if (messagesContainer.scrollTop <= 20) {
-                console.log("load old messages...........................");
                 this.throtteledLoadOldMessages(username);
             }
         });
@@ -258,7 +261,6 @@ class Chat extends status {
             }
             this.createChatListItem(this.users.get(user.username));
         }
-        console.log("adjust display");
 
         let chatListItem = this.chatList.get(user.username);
         chatListItem.focused = true;
@@ -267,7 +269,6 @@ class Chat extends status {
     }
 
     popFromChatList(user) {
-        console.log("pop from chat list");
 
         let chatListItem = this.chatList.get(user.username);
         if (chatListItem) {
@@ -324,18 +325,15 @@ class Chat extends status {
         let chatWindow = this.chatWindows.get(username);
         try {
             if (chatWindow.lastId === -1) {
-                console.log("no more messages to load");
                 return;
             }
             const queryParams = new URLSearchParams({ opponnent: username, offset: chatWindow.lastId ? chatWindow.lastId : "" });
             const resp = await fetch(`/api/messages?${queryParams.toString()}`);
             if (!resp.ok) throw new Error("Error fetching messages");
             const data = await resp.json();
-            console.log(data);
 
             chatWindow.lastId = data.offset;
             this.appendMessages(username, data.messages, scroll);
-            console.log(data);
 
         } catch (err) {
             console.error(err);
@@ -368,7 +366,6 @@ class Chat extends status {
     }
 
     #createMessageElement(username, message) {
-        console.log("creating message elemnt:", message);
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
         let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);

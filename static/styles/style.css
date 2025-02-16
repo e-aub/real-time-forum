@@ -510,6 +510,7 @@ body {
 }
 
 .online-indicator {
+    position: relative;
     width: 8px;
     height: 8px;
     background: #31a24c;
@@ -1263,11 +1264,12 @@ p.post-body {
 .chat-container {
     position: fixed;
     bottom: 0;
-    right: 350px; /* Space for online users sidebar */
+    right: 350px; 
     display: flex;
-    flex-direction: row-reverse; /* Makes new windows appear from right */
+    flex-direction: row-reverse; 
     gap: 10px;
-    height: 400px;
+    height: auto;
+    width: auto;
     z-index: 9;
     padding: 0 10px;
 }
@@ -1429,9 +1431,14 @@ p.post-body {
     display: none;
     align-items: center;
     padding: 8px;
-    background: none;
-    border: none;
+    background-color: #f0f2f5;
+    border-radius: 25%;
     cursor: pointer;
+}
+.users-list .online-indicator {
+    position: absolute;
+    right: 8px;
+    z-index: 2;
 }
 
 
@@ -1489,7 +1496,7 @@ p.post-body {
     .users-list {
         display: none; 
         position: fixed;
-        /* top: 56px; */
+        width: 100%;
         margin-left: 70px;
         right: 80;
         width: 100%;
@@ -1534,6 +1541,12 @@ p.post-body {
         top: 56px;
         left: 70px;
         border-radius: 0;
+    }
+
+    .users-list .online-indicator {
+        position: absolute;
+        right: 100px;
+        z-index: 2;
     }
 }
 

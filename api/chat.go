@@ -116,7 +116,7 @@ func (h *HubType) Run() {
 					Type:     "status",
 					UserName: client.Username,
 					Online:   true,
-				}, &client, nil)
+				}, &client, h.onlineDelayFunc)
 			}
 
 		case client := <-h.Unregister:

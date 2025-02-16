@@ -21,7 +21,6 @@ class ws{
     }
 
     onmessage(event){
-        // console.log(event.data);
         let data = JSON.parse(event.data);
         switch(data.type){
             case "status":
@@ -49,13 +48,11 @@ class ws{
                     }
                 );
                 document.dispatchEvent(chatEvent);
-                console.log(`Message from ${data.sender}: ${data.message}`);
                 break;
             case "error":
                 console.log(`Error: ${data.message}`);
                 break;
             case "typing":
-                // console.log(data)
                 var typingEvent = new CustomEvent('typing'
                     , {
                         detail: {
@@ -65,7 +62,6 @@ class ws{
                     }
                 );
                 document.dispatchEvent(typingEvent);
-                console.log(`Message from ${data.sender}: ${data.message}`);
                 break;
         }
     }
@@ -79,13 +75,7 @@ class ws{
             }));
         });
 
-        document.addEventListener('sendmessage', (e) => {
-            console.log('About to send message:', {
-                receiver: e.detail.reciever,
-                content: e.detail.message,
-                timestamp: new Date().toISOString()
-            });
-            
+        document.addEventListener('sendmessage', (e) => {            
             this.ws.send(JSON.stringify({
                 type: "message",
                 receiver: e.detail.reciever,

@@ -68,7 +68,7 @@ body {
 /* Container */
 .container {
     flex: 1;
-    height: 100%;
+    /* height: 100%; */
     overflow-y: auto;
     margin: 70px 0 0 0;
     display: flex;
@@ -1299,6 +1299,7 @@ p.post-body {
         z-index: 99;
         background: white;
     }
+    
     
     .users-list.active {
         display: block;

@@ -65,6 +65,10 @@ export class HomePage extends Page {
         document.querySelector("#commentsSection").style.display = "none";
       });
 
+    document.querySelector(".mobile-menu-btn")?.addEventListener("click", () => {
+      document.querySelector(".users-list")?.classList.toggle("active");
+    });
+
     document
       .getElementById("create-post-input")
       ?.addEventListener("click", () => {
@@ -110,7 +114,6 @@ export class HomePage extends Page {
         throttledGetPosts();
       }
     });
-    let chata = new Chat(this.userData);
   }
 
   throttle(func, limit) {

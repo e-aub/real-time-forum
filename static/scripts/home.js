@@ -267,6 +267,7 @@ export class HomePage extends Page {
       this.displayError(error.message);
     }
   }
+
   async createComment(event) {
     event.preventDefault();
     const form = event.target;
@@ -444,14 +445,15 @@ export class HomePage extends Page {
       likeButton,
       commentButton
     );
-    commentButton.onclick = (e) => {
+    commentButton.addEventListener("click",(e) => {
       // console.log("comment button clicked");
-      document.querySelector("#backgroundOverlay").style.display = "block";
+      const overlay = document.querySelector("#backgroundOverlay")
+      overlay.style.display = "block";
       const section = document.querySelector("#commentsSection");
       section.style.display = "block";
-      this.createPostCommentsPopup(post);
-      // section.appendChild();
-    };
+      this.createPostCommentsPopup(post); 
+      overlay.onclick = () => this.lastCommentId = null
+    });
 
     const postElement = newEl(
       "article",

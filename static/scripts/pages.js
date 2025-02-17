@@ -233,10 +233,11 @@ async function ParseHomeTemplate(userData) {
         </ul>
     </div>
 
-    <!-- Modals -->
-    <div class="modal comments-modal" id="commentsModal">
-        <!-- Comments modal content -->
-    </div>
+                    <!-- Comments section -->
+                    <div id="backgroundOverlay" class="background-overlay"></div>
+                    <div id="commentsSection" class="comment-section">
+                        <!-- Comments modal content -->
+                    </div>
 
     <div class="chat-container">
         <!-- chat windows wil be addede here -->

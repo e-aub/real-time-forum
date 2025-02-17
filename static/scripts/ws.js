@@ -60,11 +60,11 @@ class ws{
                         }
                     }
                 );
-                console.log(`User: ${data.user_name}, Online: ${data.online}`);
+                // console.log(`User: ${data.user_name}, Online: ${data.online}`);
                 document.dispatchEvent(statusEvent);
                 break;
             case "message":
-                console.log(data);
+                // console.log(data);
                 let chatEvent = new CustomEvent('message'
                     , {
                         detail: {

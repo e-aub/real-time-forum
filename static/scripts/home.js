@@ -10,7 +10,7 @@ export class HomePage extends Page {
     this.overlay = null;
     this.createPostPopup = null;
     this.maxId = null;
-    this.lastCommentId = 1000;
+    this.lastCommentId = null;
     this.userData = null;
     this.postData = null;
     this.Ws = new ws();
@@ -452,7 +452,7 @@ export class HomePage extends Page {
       const section = document.querySelector("#commentsSection");
       section.style.display = "block";
       this.createPostCommentsPopup(post); 
-      overlay.onclick = () => this.lastCommentId = null
+      overlay.onclick = () => this.lastCommentId = null;
     });
 
     const postElement = newEl(

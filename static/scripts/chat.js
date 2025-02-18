@@ -41,6 +41,8 @@ class Chat extends status {
                 let typingIndicator = chatWindow.typingIndicator;
                 typingIndicator.classList.remove('visible');
                 chatContainer.appendChild(messageElement);
+                const chatListElement = this.chatList.get(e.detail.sender);
+                this.chatListContainerHtmlElement.prepend(chatListElement.element);
                 chatContainer.scroll(0, chatContainer.scrollHeight);
             }
         });
@@ -399,8 +401,14 @@ class Chat extends status {
                 hour12: false
             }).replace(',', '')
         });
+        const statusListUl = this.usersListHtmlElement.querySelector('.user-list');
+        const user = this.users.get(username);
+        const statusListElement = user.statusListElement;
+        statusListUl.prepend(statusListElement);
+        
         messagesContainer.appendChild(messageElement);
         messagesContainer.scroll(0, messagesContainer.scrollHeight);
+
 
         let e = new CustomEvent('sendmessage', {
             detail: {

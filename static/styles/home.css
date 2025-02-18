@@ -935,7 +935,8 @@ p.post-body {
 }
 
 .chat-messages {
-    background-image: url('/static/images/chat-bg.jpg');
+    background: #f0f2f5;
+    /* background-image: url('/static/images/chat-bg.jpg'); */
     background-size: cover;
     background-position: center;
     position: relative;

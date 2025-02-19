@@ -198,7 +198,6 @@ func (h *HubType) UnregisterClient(client Client) {
 }
 
 func (h *HubType) SendPrivateMessage(message Message) {
-	// fmt.Println(message)
 	h.Mu.Lock()
 	to, ok := h.Clients[message.Receiver]
 	if !ok {

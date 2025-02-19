@@ -372,31 +372,6 @@ body {
     border: 2px solid white;
 }
 
-/* Username tooltip on hover */
-.chat-list .user-item::before {
-    content: attr(data-username);
-    position: absolute;
-    right: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%);
-    background: white;
-    color: #050505;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.chat-list .user-item:hover::before {
-    opacity: 1;
-    visibility: visible;
-    right: calc(100% + 8px);
-}
-
 /* Add subtle hover effect */
 .chat-list .user-item:hover .user-avatar {
     box-shadow: 0 0 0 2px #e4e6eb;
@@ -446,35 +421,6 @@ body {
     background: #31a24c;
     border-radius: 50%;
     border: 2px solid white;
-}
-
-/* Username tooltip on hover */
-.chat-list .user-item::before {
-    content: attr(data-username);
-    position: absolute;
-    right: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%);
-    background: white;
-    color: #050505;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.chat-list .user-item:hover::before {
-    opacity: 1;
-    visibility: visible;
-    right: calc(100% + 8px);
-}
-
-.chat-list .user-item:hover .user-avatar {
-    box-shadow: 0 0 0 2px #e4e6eb;
 }
 
 /* Create Post Modal */

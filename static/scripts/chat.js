@@ -316,7 +316,7 @@ class Chat extends status {
 
 
         chatListItem.innerHTML = `
-            <img src="${user.avatar}" alt="${user.username}" class="user-avatar"/>
+            <img src="${user.avatar}" alt="${user.username}" title="${user.firstname} ${user.lastname}" class="user-avatar"/>
         `;
 
         chatListItem.addEventListener('click', () => {

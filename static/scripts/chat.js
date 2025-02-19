@@ -389,7 +389,7 @@ class Chat extends status {
     appendMessages(username, messages, scroll) {
         let chatWindow = this.chatWindows.get(username);
         let chatContainer = chatWindow.element.querySelector('.chat-messages');
-        messages.forEach(message => {
+        messages?.forEach(message => {
             chatContainer.prepend(this.#createMessageElement(username, message));
             if (scroll) {
                 chatContainer.scroll(0, chatContainer.scrollHeight);

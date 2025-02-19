@@ -3,18 +3,22 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/utils"
+	"fmt"
 	"net/http"
+	"os"
+
+	"forum/utils"
 )
 
 func GetMaxPostId(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	var maxPostId int
-	err := db.QueryRow("SELECT MAX(id) FROM posts").Scan(&maxPostId)
+	err := db.QueryRow("SELECT COALESCE(MAX(id), -1) FROM posts").Scan(&maxPostId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			utils.JsonErr(w, http.StatusNotFound, "No posts found")
 			return
 		}
+		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}

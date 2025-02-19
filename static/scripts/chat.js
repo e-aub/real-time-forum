@@ -214,25 +214,29 @@ class Chat extends status {
         return [chatWindow, messagesContainer, typingIndicator];
     }
 
-    async openChatWindow(user) {
+    #hideIfReachedMaxChatWindows() {
         let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
         const maxWindows = document.body.clientWidth < 700 ? 1 : Math.ceil((document.body.clientWidth - 700) / 320);
-        let hide = false;
+        if (focusedWindowsCount >= maxWindows) {
+            this.hideChatWindow(this.users.get(firstWindowUserName));
+        }
+    }
+    async openChatWindow(user) {
+      
      
-    
         if (!this.chatWindows.has(user.username)) {
+            this.#hideIfReachedMaxChatWindows();
             this.popFromChatList(user);
             await this.createChatWindow(user);
-            hide = true;
         } else {
             let chatWindow = this.chatWindows.get(user.username);
             if (!chatWindow.focused) {
+                this.#hideIfReachedMaxChatWindows();
                 this.popFromChatList(user);
                 this.chatWindowContainerHtmlElement.prepend(chatWindow.element);
                 chatWindow.focused = true;
                 chatWindow.element.style.display = 'flex';
                 chatWindow.element.scroll(0, chatWindow.element.scrollHeight);
-                hide = true;
             }
         }
         if (user.statusListElement.classList.contains('has-unread')) {
@@ -256,10 +260,6 @@ class Chat extends status {
             }catch(err){
                 console.error(err);
             }            
-        }
-        if (focusedWindowsCount >= maxWindows && hide) {
-            let opponentUser = this.users.get(firstWindowUserName);
-            this.hideChatWindow(opponentUser);
         }
     }
     

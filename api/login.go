@@ -25,12 +25,14 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		LoginName string `json:"login_name"` // nickname or password
 		Password  string `json:"password"`
 	}
-	if !CheckEmail(userData.LoginName) && !CheckNickName(userData.LoginName) {
-		utils.JsonErr(w, http.StatusBadRequest, "Invalid login name")
-		return
-	}
+
 	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
+	}
+
+	if !CheckEmail(userData.LoginName) && !CheckNickName(userData.LoginName) {
+		utils.JsonErr(w, http.StatusBadRequest, "Invalid login name")
 		return
 	}
 	var user_id int

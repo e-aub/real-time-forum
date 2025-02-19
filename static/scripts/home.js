@@ -470,6 +470,7 @@ export class HomePage extends Page {
 
 
   async getPosts() {
+    if (this.maxId < 0) return;
     try {
       const queryParams = new URLSearchParams({ offset: this.maxId });
       const response = await fetch(`/api/posts?${queryParams}`);

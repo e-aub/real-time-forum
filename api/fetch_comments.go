@@ -35,14 +35,14 @@ func GetComments(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 	}
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 	if err != nil || offset < 0 {
-		query := `SELECT MAX(id) FROM comments WHERE post_id = ?`
+		query := `SELECT COALESCE(MAX(id), 0) FROM comments WHERE post_id = ?`
 		err := db.QueryRow(query, postId).Scan(&offset)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
-		fmt.Println("offset:", offset)
+		offset++
 	}
 	rows, err := db.Query(`
 	SELECT c.id, c.post_id, u.firstname, u.lastname, c.content, c.created_at

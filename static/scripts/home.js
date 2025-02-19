@@ -2,7 +2,7 @@ import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { status } from "/static/scripts/status.js";
 import { Chat } from "/static/scripts/chat.js";
 import { ws } from "/static/scripts/ws.js";
-import { formatTimestamp } from "/static/scripts/utils.js";
+import { formatTimestamp, newEl } from "/static/scripts/utils.js";
 
 export class HomePage extends Page {
   constructor() {
@@ -51,9 +51,6 @@ export class HomePage extends Page {
     this.createPostPopup = document.querySelector(".create-post-popup");
     this.getPosts();
     this.setupEventListeners();
-    // this.handleComment()
-    // const section = document.querySelector("#commentsSection");
-    // section.appendChild(this.cmnt);
   }
 
   setupEventListeners() {
@@ -343,17 +340,17 @@ export class HomePage extends Page {
       const response = await fetch(`/api/comments?${params.toString()}`);
       if (!response.ok) throw new Error("Error fetching comments");
       const data = await response.json();
-
       this.lastCommentId = data.offset;
       if (!data.comments) {
         this.lastCommentId = 0;
         return;
       }
       for (const comment of data.comments) {
+        console.log(comment);
         this.createCommentElement(comment, commentsContainer);
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   }
 
@@ -449,7 +446,6 @@ export class HomePage extends Page {
       commentButton
     );
     commentButton.addEventListener("click",(e) => {
-      // console.log("comment button clicked");
       const overlay = document.querySelector("#backgroundOverlay")
       overlay.style.display = "block";
       const section = document.querySelector("#commentsSection");
@@ -475,7 +471,6 @@ export class HomePage extends Page {
 
   async getPosts() {
     try {
-      // console.log(this.maxId);
       const queryParams = new URLSearchParams({ offset: this.maxId });
       const response = await fetch(`/api/posts?${queryParams}`);
       if (!response.ok) {
@@ -497,129 +492,5 @@ export class HomePage extends Page {
   }
 }
 
-function newEl(name, attrs, ...childs) {
-  /* create new element */
-  const el = document.createElement(name);
-  /* add attrebutes to the element */
-  if (attrs != undefined) {
-    for (let attr of Object.keys(attrs)) {
-      el.setAttribute(attr, attrs[attr]);
-    }
-  }
-  /* append childs to the element */
-  if (childs != undefined) {
-    for (let child of childs) {
-      el.appendChild(child);
-    }
-  }
-  return el;
-}
-
-// function handleComment(postId) {
-//   // Create post details
-//   const profileImg = newEl("img", {
-//     src: "",
-//     class: "profile-img",
-//     alt: "profile image",
-//   });
-
-//   const username = newEl("p", { class: "profile-username" });
-//   username.textContent = "Yassine Rahhaoui";
-
-//   const postHeader = newEl(
-//     "header",
-//     { class: "post-header" },
-//     profileImg,
-//     username
-//   );
-
-//   const postBody = newEl("p", { class: "post-body" });
-//   postBody.textContent =
-//     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam! Placeat molestiae deleniti adipisci facilis accusantium enim, consectetur necessitatibus non. Tempora ad blanditiis harum tempore autem fugiat nihil velit dicta!";
-
-//   const postDetails = newEl(
-//     "article",
-//     { class: "post-details" },
-//     postHeader,
-//     postBody
-//   );
-
-//   // Create comment card
-//   const commentProfileImg = newEl("img", {
-//     src: "",
-//     class: "profile-img",
-//     alt: "profile image",
-//   });
-
-//   const commentUsername = newEl("p", { class: "profile-username" });
-//   commentUsername.textContent = "Yassine Rahhaoui";
-
-//   const commentHeader = newEl(
-//     "header",
-//     { class: "comment-header" },
-//     commentProfileImg,
-//     commentUsername
-//   );
-
-//   const commentBody = newEl("p", { class: "comment-body" });
-//   commentBody.textContent =
-//     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, nam!";
-
-//   const commentCard = newEl(
-//     "article",
-//     { class: "comment-card" },
-//     commentHeader,
-//     commentBody
-//   );
-
-//   const commentList = newEl("div", { class: "comment-list" }, commentCard);
-
-//   // Create comment content container
-//   const commentContent = newEl(
-//     "div",
-//     { class: "comment-content" },
-//     postDetails,
-//     commentList
-//   );
-
-//   // Create comment form
-//   const input = newEl("input", {
-//     type: "text",
-//     name: "comment",
-//     class: "comment-input",
-//     id: "comment",
-//     placeholder: "Create your comment...",
-//     autocomplete: "off",
-//     required: "true",
-//   });
-
-//   const submitBtn = newEl("button", {
-//     type: "submit",
-//     class: "comment-btn",
-//   });
-//   submitBtn.textContent = "Send";
-
-//   const formGroup = newEl("div", { class: "form-group" }, input, submitBtn);
-
-//   const commentForm = newEl(
-//     "form",
-//     {
-//       id: "comment-form",
-//       class: "comment-form",
-//       method: "POST",
-//       novalidate: "true",
-//     },
-//     formGroup
-//   );
-
-//   // Create main container and append everything
-//   const commentContainer = newEl(
-//     "div",
-//     { class: "comments-container" },
-//     commentContent,
-//     commentForm
-//   );
-//   document.getElementById("commentsSection").appendChild(commentContainer);
-// }
 function handleLike(postId) {
 }

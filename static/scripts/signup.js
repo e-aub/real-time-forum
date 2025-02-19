@@ -32,7 +32,7 @@ export class SignupPage extends Page {
 
     validateEmail(value) {
         if (!value) return 'Email is required';
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,63}$/;
         if (!emailRegex.test(value)) return 'Please enter a valid email address';
         return '';
     }

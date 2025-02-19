@@ -1,4 +1,5 @@
 import { status } from "/static/scripts/status.js";
+import { newEl } from "./utils.js";
 
 class Chat extends status {
     constructor(myData) {
@@ -403,13 +404,13 @@ class Chat extends status {
         messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
         messageElement.dataset.id = message.id;
         let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);
-        messageElement.innerHTML = `
-         <img src="${avatar}" class="message-avatar" alt="${message.sender}">
-            <div class="message-content">
-            <div class="message-time">${message.creation_date}</div>
-            <div class="message-text">${message.message}</div>
-            </div>
-        `;
+        const img = newEl('img', { src: avatar, class: 'message-avatar', alt: message.sender });
+        const messageTime = newEl('div', { class: 'message-time' });
+        messageTime.textContent = message.creation_date;
+        const messageText = newEl('div', { class: 'message-text' });
+        messageText.textContent = message.message;
+        const messageContent = newEl('div', { class: 'message-content' }, messageTime, messageText);
+        messageElement.append(img, messageContent);
         return messageElement;
     }
 

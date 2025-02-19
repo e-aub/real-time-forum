@@ -12,5 +12,23 @@ function formatTimestamp(timestamp) {
     return date.toLocaleDateString();
   }
 
+  function newEl(name, attrs, ...childs) {
+    /* create new element */
+    const el = document.createElement(name);
+    /* add attrebutes to the element */
+    if (attrs != undefined) {
+      for (let attr of Object.keys(attrs)) {
+        el.setAttribute(attr, attrs[attr]);
+      }
+    }
+    /* append childs to the element */
+    if (childs != undefined) {
+      for (let child of childs) {
+        el.appendChild(child);
+      }
+    }
+    return el;
+  }
 
-export { generateAvatar, formatTimestamp };
+
+export { generateAvatar, formatTimestamp, newEl };

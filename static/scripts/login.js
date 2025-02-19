@@ -13,7 +13,7 @@ export class LoginPage extends Page {
     validateLoginName(value) {
         if (!value) return 'Email or username is required';
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,63}$/;
         const isEmail = emailRegex.test(value);
 
         const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;

@@ -94,7 +94,7 @@ func CheckNickName(nickname string) bool {
 }
 
 func CheckEmail(email string) bool {
-	re, err := regexp.Compile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$`)
+	re, err := regexp.Compile(`^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,63}$`)
 	if err != nil || len(email) >= 255 {
 		return false
 	}

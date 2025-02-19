@@ -306,6 +306,25 @@ body {
     border-radius: 50%;
 }
 
+.unread-dot {
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+    position: absolute;
+    top: 26px;
+    right: 2px;
+    display: none;
+}
+
+.user-item.has-unread .unread-dot {
+    display: block;
+}
+
+.avatar {
+    position: relative;
+}
+
 /* chat list style  */
 
 .chat-list {

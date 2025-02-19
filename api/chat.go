@@ -63,6 +63,7 @@ type StatusErr struct {
 
 /*---------- messages type ----------*/
 type Message struct {
+	Id           int    `json:"id"`
 	Type         string `json:"type"`
 	Sender       string `json:"sender"`
 	IsTyping     bool   `json:"is_typing"`
@@ -295,10 +296,12 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 			message.Sender, _ = getUsername(db, userId)
 			if message.Receiver != "" && message.Message != "" {
 				message.CreationDate = time.Now().Format("2006-01-02 15:04")
-				if err := saveInDb(db, userId, message); err != nil {
+				id, err := saveInDb(db, userId, message)
+				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					break
 				}
+				message.Id = id
 				Hub.Private <- message
 			}
 		} else if message.Type == "typing" {
@@ -326,12 +329,20 @@ func getUserId(db *sql.DB, username string) (int, error) {
 	return id, err
 }
 
-func saveInDb(db *sql.DB, senderId int, message Message) error {
+func saveInDb(db *sql.DB, senderId int, message Message) (int, error) {
 	reciverId, err := getUserId(db, message.Receiver)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	query := `INSERT INTO messages (sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)`
-	_, err = db.Exec(query, senderId, reciverId, message.Message, message.CreationDate)
-	return err
+	res, err := db.Exec(query, senderId, reciverId, message.Message, message.CreationDate)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), err
 }

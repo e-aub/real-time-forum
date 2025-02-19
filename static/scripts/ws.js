@@ -68,6 +68,7 @@ class ws{
                 let chatEvent = new CustomEvent('message'
                     , {
                         detail: {
+                            id : data.id,
                             avatar: data.avatar,
                             message: data.content,
                             sender: data.sender,

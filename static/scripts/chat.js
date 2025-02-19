@@ -33,28 +33,44 @@ class Chat extends status {
         });
 
         document.addEventListener('message', (e) => {
+            const audio = new Audio('/static/audio/message.mp3');
+            audio.play();
+            
+            const statusListUl = this.usersListHtmlElement.querySelector('.user-list');
+            const user = this.users.get(e.detail.sender);
+            const statusListElement = user.statusListElement;
+            statusListUl.prepend(statusListElement);
+            
             if (this.chatWindows.has(e.detail.sender)) {
-                let messageElement = this.#createMessageElement(e.detail.sender, e.detail);
-                let chatWindow = this.chatWindows.get(e.detail.sender)
-                clearTimeout(chatWindow.typingTimeout);
-                let chatContainer = chatWindow.messagesContainer;
-                let typingIndicator = chatWindow.typingIndicator;
-                typingIndicator.classList.remove('visible');
-                chatContainer.appendChild(messageElement);
-                const chatListElement = this.chatList.get(e.detail.sender);
-                this.chatListContainerHtmlElement.prepend(chatListElement.element);
-                chatContainer.scroll(0, chatContainer.scrollHeight);
+                var chatWindow = this.chatWindows.get(e.detail.sender);
+                    chatWindow.typingIndicator.classList.remove('visible');
+                    const chatContainer = chatWindow.messagesContainer;
+                    const messageElement = this.#createMessageElement(e.detail.sender, e.detail);
+                    chatContainer.appendChild(messageElement);
+                    chatContainer.scroll(0, chatContainer.scrollHeight);
+            }
+        
+            if (!chatWindow || !chatWindow.focused) {
+                user.statusListElement.classList.add('has-unread');
             }
         });
+        
 
         document.addEventListener('typing', (e) => {
             let receiver = e.detail.sender;
             let isTyping = e.detail.typing;
-            if (this.chatWindows.has(receiver) && this.chatWindows.get(receiver).focused) {
+            if (this.chatWindows.has(receiver) && this.chatWindows.get(receiver).focused) {              
                 let messagesContainer = this.chatWindows.get(receiver).messagesContainer;
 
                 let typingIndicator = messagesContainer.querySelector('.typing-indicator');
                 typingIndicator.classList.toggle('visible', isTyping);
+
+                if (isTyping) {
+                    this.chatWindows.get(receiver).typingSound.pause();
+                    this.chatWindows.get(receiver).typingSound.play();
+                } else {
+                    this.chatWindows.get(receiver).typingSound.pause();
+                }
  
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -62,11 +78,13 @@ class Chat extends status {
         });
     }
 
-    createChatWindow(user) {
+    async createChatWindow(user) {
         const [chatWindow, chatMessages, typingIndicator] = this.createChatWindowElement(user.username, `${user.firstname} ${user.lastname}`, user.avatar);
         this.chatWindowContainerHtmlElement.prepend(chatWindow);
-        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null });
-        this.loadOldMessages(user.username, true);
+        const typingSound = new Audio('/static/audio/typing.mp3');
+        typingSound.loop = true;
+        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null, typingSound: typingSound });
+        await this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
 
@@ -209,7 +227,7 @@ class Chat extends status {
         return [chatWindow, messagesContainer, typingIndicator];
     }
 
-    openChatWindow(user) {
+    async openChatWindow(user) {
         let [focusedWindowsCount, firstWindowUserName] = this.getFocusedWindowsCount();
         const maxWindows = document.body.clientWidth < 700 ? 1 : Math.ceil((document.body.clientWidth - 700) / 320);
         let hide = false;
@@ -217,7 +235,7 @@ class Chat extends status {
     
         if (!this.chatWindows.has(user.username)) {
             this.popFromChatList(user);
-            this.createChatWindow(user);
+            await this.createChatWindow(user);
             hide = true;
         } else {
             let chatWindow = this.chatWindows.get(user.username);
@@ -226,8 +244,31 @@ class Chat extends status {
                 this.chatWindowContainerHtmlElement.prepend(chatWindow.element);
                 chatWindow.focused = true;
                 chatWindow.element.style.display = 'flex';
+                chatWindow.element.scroll(0, chatWindow.element.scrollHeight);
                 hide = true;
             }
+        }
+        if (user.statusListElement.classList.contains('has-unread')) {
+            try{
+                const receivedMessages = this.chatWindows.get(user.username).messagesContainer.querySelectorAll('.message.received:not(.typing-indicator)');
+                const lastMessageId = receivedMessages[receivedMessages.length - 1].dataset.id;
+
+                
+                const queryParams = new URLSearchParams({
+                    message_id: lastMessageId
+                })
+
+                const res = await fetch(`/api/seen?${queryParams.toString()}`, {
+                    method: 'PUT',
+                }
+                )
+
+                if (res.status === 204){
+                    user.statusListElement.classList.remove('has-unread');
+                }
+            }catch(err){
+                console.error(err);
+            }            
         }
         if (focusedWindowsCount >= maxWindows && hide) {
             let opponentUser = this.users.get(firstWindowUserName);
@@ -305,7 +346,6 @@ class Chat extends status {
         let chatWindow = this.chatWindows.get(username);
         clearTimeout(chatWindow.typingTimeout);
         if (!chatWindow.isTyping) {
-            chatWindow.isTyping = true;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: true } });
             document.dispatchEvent(event);
         }
@@ -372,8 +412,10 @@ class Chat extends status {
     }
 
     #createMessageElement(username, message) {
+        console.log(message);
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
+        messageElement.dataset.id = message.id;
         let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);
         messageElement.innerHTML = `
          <img src="${avatar}" class="message-avatar" alt="${message.sender}">

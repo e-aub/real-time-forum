@@ -15,11 +15,16 @@ class status {
             let usersList = document.querySelector(".user-list");
 
             data.forEach((user) => {
+                console.log(user);
                 let userListItem = document.createElement("li");
                 userListItem.classList.add("user-item");
+                if (user.notify) userListItem.classList.add("has-unread");
                 userListItem.dataset.username = user.username;
                 userListItem.innerHTML = `
+                    <div class="avatar">
                     <img src="${user.avatar}" alt="${user.username}" class="user-avatar" />
+                    <div class="unread-dot"></div>
+                    </div>
                     <span>${user.firstname} ${user.lastname}</span>
                     <div class="online-indicator ${user.online ? "" : "hidden"}"></div>
                 `;

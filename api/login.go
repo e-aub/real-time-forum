@@ -22,7 +22,7 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var userData struct {
-		LoginName string `json:"login_name"` // nickname or password
+		LoginName string `json:"login_name"` // nickname or email
 		Password  string `json:"password"`
 	}
 

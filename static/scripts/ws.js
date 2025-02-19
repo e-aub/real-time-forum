@@ -11,6 +11,7 @@ class ws{
         this.reconnecting = false;
         this.retryInterval = null;
         this.pingInterval = setInterval(() => {
+            if (!document.cookie.includes("token")) this.ws.close();
             if (!this.pongReceived) {
                 this.pongReceived = false;
                 this.reconnect();

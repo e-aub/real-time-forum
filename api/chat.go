@@ -97,16 +97,6 @@ func (h *HubType) offlineDelayFunc(client *Client) bool {
 	return true
 }
 
-func (h *HubType) onlineDelayFunc(client *Client) bool {
-	time.Sleep(time.Second * 5)
-	h.Mu.Lock()
-	defer h.Mu.Unlock()
-	if _, ok := h.Clients[client.Username]; ok {
-		return true
-	}
-	return false
-}
-
 func (h *HubType) Run() {
 	for {
 		select {
@@ -117,7 +107,7 @@ func (h *HubType) Run() {
 					Type:     "status",
 					UserName: client.Username,
 					Online:   true,
-				}, &client, h.onlineDelayFunc)
+				}, &client, nil)
 			}
 
 		case client := <-h.Unregister:

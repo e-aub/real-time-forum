@@ -122,11 +122,6 @@ class Chat extends status {
 
         const minimizeBtn = document.createElement('button');
         minimizeBtn.className = 'minimize-btn';
-        minimizeBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24">
-                <path d="M20 12L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        `;
         minimizeBtn.addEventListener('click', () => {
             this.hideChatWindow(this.users.get(username));
         });
@@ -134,11 +129,7 @@ class Chat extends status {
 
         const closeBtn = document.createElement('button');
         closeBtn.className = 'close-btn';
-        closeBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        `;
+        
         closeBtn.addEventListener('click', () => {
             this.removeChatWindow(username);
         });
@@ -200,11 +191,6 @@ class Chat extends status {
 
         const sendBtn = document.createElement('button');
         sendBtn.className = 'send-btn';
-        sendBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        `;
         //send icon event listener
         sendBtn.addEventListener('click', () => {
             if (!this.#messageValid(messageInput.value)) return;

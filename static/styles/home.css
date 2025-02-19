@@ -473,7 +473,6 @@ body {
     right: calc(100% + 8px);
 }
 
-/* Add subtle hover effect */
 .chat-list .user-item:hover .user-avatar {
     box-shadow: 0 0 0 2px #e4e6eb;
 }
@@ -908,6 +907,13 @@ p.post-body {
     border-radius: 8px 8px 0 0;
 }
 
+.minimize-btn {
+    background: url('/static/images/minimize.png');
+}
+
+.close-btn {
+    background: url('/static/images/close.png');
+}
 .user-info {
     display: flex;
     align-items: center;
@@ -938,19 +944,18 @@ p.post-body {
 }
 
 .chat-actions button {
-    background: none;
     border: none;
-    padding: 4px;
-    cursor: pointer;
+    padding: 8px;
     color: #65676b;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.chat-actions button:hover {
-    background: #f0f2f5;
+    background-size: cover;
+    margin: 4px;
+    width: 8px;
+    height: 8px;
+    cursor: pointer;
 }
 
 .chat-messages {
@@ -1058,19 +1063,16 @@ p.post-body {
 }
 
 .send-btn {
-    background: none;
+    background: url('/static/images/send.png');
+    background-size: cover;
+    height: 16px;
+    width: 16px;
     border: none;
-    padding: 8px;
+    padding: 10px;
     cursor: pointer;
-    color: #0084ff;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.send-btn:hover {
-    background: #f0f2f5;
 }
 
 

@@ -40,9 +40,13 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 
 	if err != nil || offset <= 0 {
 		fmt.Println("sender", userId, "receiver", opponnentId)
-		query := `SELECT MAX(id) FROM messages 
-			WHERE (sender_id = $1 AND receiver_id = $2) 
-   			OR (receiver_id = $1 AND sender_id = $2)`
+		query := `SELECT COALESCE(
+            (SELECT MAX(id) FROM messages 
+             WHERE (sender_id = $1 AND receiver_id = $2) 
+                OR (receiver_id = $1 AND sender_id = $2)), 
+            0
+        );`
+
 		err := db.QueryRow(query, userId, opponnentId).Scan(&offset)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

@@ -22,15 +22,16 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var userData struct {
-		LoginName string `json:"login_name"` // nickname or password
+		LoginName string `json:"login_name"` // nickname or email
 		Password  string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
+		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return
 	}
 	if !CheckEmail(userData.LoginName) && !CheckNickName(userData.LoginName) {
 		utils.JsonErr(w, http.StatusBadRequest, "Invalid login name")
-		return
-	}
-	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
-		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
 	var user_id int

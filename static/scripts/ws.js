@@ -10,8 +10,13 @@ class ws{
         this.pongReceived = false;
         this.reconnecting = false;
         this.retryInterval = null;
-        this.pingInterval = setInterval(() => {
-            if (!document.cookie.includes("token")) this.ws.close();
+        this.pingInterval = setInterval(async () => {
+            const res = await fetch("/api/authenticated");
+                if (res.status === 401) {
+                    this.ws.close();
+                    clearInterval(this.pingInterval);
+                    return;
+                }
             if (!this.pongReceived) {
                 this.pongReceived = false;
                 this.reconnect();

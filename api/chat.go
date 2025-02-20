@@ -300,6 +300,7 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 				Hub.Private <- message
 			}
 		} else if message.Type == "ping" {
+			fmt.Println("received ping from", userName)
 			message.Type = "pong"
 			message.Receiver = userName
 			Hub.Private <- message

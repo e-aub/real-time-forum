@@ -13,7 +13,11 @@ class status {
             const data = await resp.json();
 
             let usersList = document.querySelector(".user-list");
-
+            if (!data) {
+                usersList.innerHTML = '<li style="font-size: 16px;color:grey;padding-inline:10px">No users found</li>';
+                return;
+            }
+            
             data.forEach((user) => {
                 console.log(user);
                 let userListItem = document.createElement("li");

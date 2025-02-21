@@ -49,7 +49,11 @@ class status {
     initListeners(){
         document.addEventListener("status", (e) => {
             let user = this.users.get(e.detail.username);
-            if (!user) return;
+            if (!user) {
+                let usersList = document.querySelector(".user-list");
+                usersList.innerHTML = '';
+                this.getUsers();
+            };
             user.online = e.detail.online;
             let statusListElement = user.statusListElement.querySelector(".online-indicator");
             statusListElement.classList.toggle("hidden", !e.detail.online);

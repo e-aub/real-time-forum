@@ -1,4 +1,4 @@
-import { Page, signUpTemplate } from "/static/scripts/pages.js";
+import { Page, signUpTemp$late } from "/static/scripts/pages.js";
 
 export class SignupPage extends Page {
     constructor() {
@@ -19,7 +19,7 @@ export class SignupPage extends Page {
         if (!value) return 'Nickname is required';
         if (value.length < 3) return 'Nickname must be at least 3 characters';
         if (value.length > 20) return 'Nickname must be less than 20 characters';
-        if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Nickname can only contain letters, numbers, hyphen and underscores';
+        if (!/^[a-zA-Z1-9-_]{4,30}$/.test(value)) return 'Nickname can only contain letters, numbers, hyphen and underscores';
         return '';
     }
 

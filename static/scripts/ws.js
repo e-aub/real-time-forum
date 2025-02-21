@@ -30,7 +30,7 @@ class ws{
 
     reconnect(event){
         if (this.reconnecting) return;
-        // this.ws.close();
+        this.ws.close();
         this.reconnecting = true;
         console.log("Reconnecting to WebSocket server");
 

@@ -333,6 +333,7 @@ class Chat extends status {
         let chatWindow = this.chatWindows.get(username);
         clearTimeout(chatWindow.typingTimeout);
         if (!chatWindow.isTyping) {
+            chatWindow.isTyping = true;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: true } });
             document.dispatchEvent(event);
         }

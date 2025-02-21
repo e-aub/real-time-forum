@@ -27,7 +27,8 @@ LEFT JOIN messages m ON u.id = m.sender_id AND m.receiver_id = $1
 AND m.id = (
     SELECT MAX(id) 
     FROM messages 
-    WHERE (sender_id = u.id AND receiver_id = $1)
+    WHERE (	sender_id = $1 AND receiver_id = u.id
+	OR sender_id = u.id AND receiver_id = $1)
 )
 WHERE u.id != $1 
 GROUP BY u.id

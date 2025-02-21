@@ -13,6 +13,7 @@ class status {
             const data = await resp.json();
 
             let usersList = document.querySelector(".user-list");
+            usersList.innerHTML = "";
             if (!data) {
                 usersList.innerHTML = '<li style="font-size: 16px;color:grey;padding-inline:10px">No users found</li>';
                 return;
@@ -50,8 +51,6 @@ class status {
         document.addEventListener("status", (e) => {
             let user = this.users.get(e.detail.username);
             if (!user) {
-                let usersList = document.querySelector(".user-list");
-                usersList.innerHTML = '';
                 this.getUsers();
             };
             user.online = e.detail.online;

@@ -18,7 +18,6 @@ class ws{
                     return;
                 }
             if (!this.pongReceived) {
-                this.pongReceived = false;
                 this.reconnect();
             }else{
                 this.pongReceived = false;
@@ -41,14 +40,13 @@ class ws{
 
     onopen(){
         this.reconnecting = false;
-        this.ping();  
-        
+        this.ping(); 
     }
 
     ping(){
+        console.log(this.ws.readyState)
         if (this.ws.readyState === WebSocket.OPEN){
         this.ws.send(JSON.stringify({type: "ping"}));
-        // console.log("Ping");
     }else{
         this.reconnect();
     }

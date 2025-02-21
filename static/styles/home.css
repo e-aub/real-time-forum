@@ -271,6 +271,7 @@ body {
     cursor: pointer;
     border-radius: 8px;
     gap: 12px;
+    position: relative;
 }
 
 .user-item:hover {
@@ -399,6 +400,11 @@ body {
 }
 .post-details .post-body {
     padding-left: 20px;
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: justify;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 .comments-title {
     text-align: center;

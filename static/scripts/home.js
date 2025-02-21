@@ -144,7 +144,7 @@ export class HomePage extends Page {
       username
     );
 
-    const postBody = newEl("p", { class: "post-body" });
+    const postBody = newEl("pre", { class: "post-body" });
     postBody.textContent = `${post.content}`;
     const postDetails = newEl(
       "article",

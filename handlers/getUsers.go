@@ -32,7 +32,7 @@ AND m.id = (
 )
 WHERE u.id != $1 
 GROUP BY u.id
-ORDER BY MAX(messages.id) DESC, u.nickname ASC;
+ORDER BY MAX(messages.id) DESC, u.firstname, u.lastname ASC;
 
 `
 

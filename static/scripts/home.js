@@ -431,17 +431,14 @@ export class HomePage extends Page {
     postContent.textContent = `${post.content}`;
 
     /* create post actions dom */
-    const likeButton = newEl("button", { class: `post-action` });
     const commentButton = newEl("button", {
       class: `post-action`,
       "data-postid": `${post.post_id}`,
     });
-    likeButton.textContent = `👍 Like`;
     commentButton.textContent = `💬 Comment`;
     const postActions = newEl(
       "div",
       { class: `post-actions` },
-      likeButton,
       commentButton
     );
     commentButton.addEventListener("click",(e) => {

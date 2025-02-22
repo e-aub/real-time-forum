@@ -8,12 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"forum/utils"
+
 	"github.com/gorilla/websocket"
 )
-
-/*
-	- [conn, sender, receiver, message, creation_date, type]
-*/
 
 type HubType struct {
 	Clients    map[string]Client
@@ -24,53 +22,46 @@ type HubType struct {
 	Private    chan Message
 }
 
-type TypingMsg struct {
-	Type     string `json:"type"`
-	IsTyping bool   `json:"is_typing"`
-	Receiver string `json:"receiver"`
-}
-
 type Client struct {
 	Conns    []*websocket.Conn
 	UserId   int
 	Username string
 }
 
-/*---------- status tracking type ----------*/
 type Status struct {
 	Type     string `json:"type"`
 	UserName string `json:"username"`
 	Online   bool   `json:"online"`
 }
 
-/*---------- handle users status ----------*/
-type WSError[T ChatError | StatusErr] struct {
-	Type    string
-	ErrType string // could be chat error or online users error
-	Error   T
+type Message map[string]any
+
+func (message Message) isValidPrivateMessage() bool {
+	receiver, ok1 := message["receiver"].(string)
+	_, ok2 := message["content"].(string)
+	_, ok3 := message["id"].(float64)
+	if !ok1 || !ok2 || !ok3 || receiver == "" {
+		return false
+	}
+	return true
 }
 
-type ChatError struct {
-	Error                  string
-	Status                 int
-	ConversationByUsername string
+func (message Message) isValidTypingMessage() bool {
+	receiver, ok1 := message["receiver"].(string)
+	_, ok2 := message["is_typing"].(bool)
+	if !ok1 || !ok2 || receiver == "" {
+		return false
+	}
+	return true
 }
 
-type StatusErr struct {
-	Error  string
-	Status int
-}
-
-/*---------- messages type ----------*/
-type Message struct {
-	Id           int    `json:"id"`
-	Type         string `json:"type"`
-	Sender       string `json:"sender"`
-	IsTyping     bool   `json:"is_typing"`
-	Receiver     string `json:"receiver"`
-	Message      string `json:"content"`
-	CreationDate string `json:"creation_date"`
-	Avatar       string `json:"avatar"`
+func sendChatError(receiver string, conversation string, messageId float64) {
+	err := Message{}
+	err["type"] = "error"
+	err["receiver"] = receiver
+	err["conversation"] = conversation
+	err["id"] = messageId
+	Hub.Private <- err
 }
 
 /*---------- upgrade connection from http to ws ----------*/
@@ -120,6 +111,7 @@ func (h *HubType) Run() {
 		case message := <-h.Broadcast:
 			h.BroadcastMessage(message, nil, nil)
 		case message := <-h.Private:
+			fmt.Println(message)
 			h.SendPrivateMessage(message)
 		}
 	}
@@ -189,7 +181,8 @@ func (h *HubType) UnregisterClient(client Client) {
 
 func (h *HubType) SendPrivateMessage(message Message) {
 	h.Mu.Lock()
-	to, ok := h.Clients[message.Receiver]
+	receiver := message["receiver"].(string)
+	to, ok := h.Clients[receiver]
 	if !ok {
 		h.Mu.Unlock()
 		fmt.Fprintln(os.Stderr, "receiver not found")
@@ -225,22 +218,23 @@ func (h *HubType) BroadcastMessage(message any, client *Client, delayFunc func(c
 	} else {
 		broadcast()
 	}
-	fmt.Println("laaaa fin")
 }
 
 func Upgrade(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		utils.RespondWithJson(w, http.StatusInternalServerError, map[string]string{"error": "failed to upgrade connection"})
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	username, err := getUsername(db, userId)
 	if err != nil {
+		utils.RespondWithJson(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
 		fmt.Fprintln(os.Stderr, "invalid username!")
 		return
 	}
 	Hub.Register <- Client{Conns: []*websocket.Conn{conn}, Username: username, UserId: userId}
-	go handleConn(conn, db, userId)
+	go handleConn(conn, db, userId, username)
 }
 
 func getUsername(db *sql.DB, userId int) (string, error) {
@@ -250,30 +244,19 @@ func getUsername(db *sql.DB, userId int) (string, error) {
 	return username, err
 }
 
-func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
-	userName, _ := getUsername(db, userId)
-
-	conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+func handleConn(conn *websocket.Conn, db *sql.DB, userId int, userName string) {
+	err := conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		Hub.Unregister <- Client{Conns: nil, Username: userName}
+		return
+	}
 
 	conn.SetPongHandler(func(appData string) error {
-		fmt.Println(appData)
-		err := conn.SetReadDeadline(time.Now().Add(time.Second * 30))
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
+		conn.SetReadDeadline(time.Now().Add(time.Second * 30))
 		return nil
 	})
 
-	conn.SetPingHandler(func(appData string) error {
-		err := conn.WriteControl(websocket.PongMessage, []byte{}, time.Now().Add(time.Second*1))
-		if err != nil {
-			conn.SetWriteDeadline(time.Now().Add(time.Second * 1))
-		}
-		return nil
-	})
-
-	fmt.Println("Connected:", conn.RemoteAddr())
 	for {
 		var message Message
 		if err := conn.ReadJSON(&message); err != nil {
@@ -281,37 +264,51 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 			fmt.Fprintln(os.Stderr, err)
 			break
 		}
-		if message.Type == "message" {
-			message.Sender, _ = getUsername(db, userId)
-			if message.Receiver != "" && message.Message != "" {
-				message.CreationDate = time.Now().Format("2006-01-02 15:04")
-				id, err := saveInDb(db, userId, message)
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-					break
-				}
-				message.Id = id
-				Hub.Private <- message
+		messageType, ok := message["type"].(string)
+		if !ok {
+			continue
+		}
+		if messageType == "message" {
+			ok := message.isValidPrivateMessage()
+			if !ok {
+				continue
 			}
-		} else if message.Type == "typing" {
-			fmt.Println(message)
-			message.Sender, _ = getUsername(db, userId)
-			if message.Receiver != "" {
-				Hub.Private <- message
+
+			if len(message["content"].(string)) == 0 || len(message["content"].(string)) > 500 {
+				sendChatError(userName, message["receiver"].(string), message["id"].(float64))
+				continue
 			}
-		} else if message.Type == "ping" {
-			fmt.Println("received ping from", userName)
-			message.Type = "pong"
-			message.Receiver = userName
+
+			message["sender"] = userName
+			message["creation_date"] = time.Now().Format("2006-01-02 15:04")
+			id, err := saveInDb(db, userId, message)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				sendChatError(userName, message["receiver"].(string), message["id"].(float64))
+				continue
+			}
+			message["id"] = id
+			Hub.Private <- message
+		} else if messageType == "typing" {
+			ok := message.isValidTypingMessage()
+			if !ok {
+				continue
+			}
+			sender, err := getUsername(db, userId)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+			message["sender"] = sender
+			Hub.Private <- message
+		} else if messageType == "ping" {
+			message["type"] = "pong"
+			message["receiver"] = userName
 			Hub.Private <- message
 		}
 	}
 }
 
-/*
-#---------- getUserId ----------#
-- return userId or error
-*/
 func getUserId(db *sql.DB, username string) (int, error) {
 	var id int
 	query := `SELECT id FROM users WHERE (nickname = ?);`
@@ -320,12 +317,12 @@ func getUserId(db *sql.DB, username string) (int, error) {
 }
 
 func saveInDb(db *sql.DB, senderId int, message Message) (int, error) {
-	reciverId, err := getUserId(db, message.Receiver)
+	reciverId, err := getUserId(db, message["receiver"].(string))
 	if err != nil {
 		return 0, err
 	}
 	query := `INSERT INTO messages (sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)`
-	res, err := db.Exec(query, senderId, reciverId, message.Message, message.CreationDate)
+	res, err := db.Exec(query, senderId, reciverId, message["content"].(string), message["creation_date"].(string))
 	if err != nil {
 		return 0, err
 	}

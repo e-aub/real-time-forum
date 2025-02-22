@@ -13,4 +13,5 @@ for (let i = 0; i < 300; i++) {
 function fetchAndResult(url){
     fetch(url)
         .then(response => console.log(response.status))
-        .catch(error => console.error(error));}
+        .catch(error => console.error(error));
+    }

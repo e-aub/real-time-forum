@@ -51,7 +51,7 @@ class ws{
         this.reconnect();
     }
     }
-
+    
     onmessage(event){
         let data = JSON.parse(event.data);
         switch(data.type){
@@ -64,11 +64,9 @@ class ws{
                         }
                     }
                 );
-                // console.log(`User: ${data.user_name}, Online: ${data.online}`);
                 document.dispatchEvent(statusEvent);
                 break;
             case "message":
-                // console.log(data);
                 let chatEvent = new CustomEvent('message'
                     , {
                         detail: {
@@ -83,8 +81,17 @@ class ws{
                 document.dispatchEvent(chatEvent);
                 break;
             case "error":
-                console.log(`Error: ${data.message}`);
-                break;
+                console.log(data);
+                let errorEvent = new CustomEvent(`chatWindowError-${data.conversation}`
+                    , {
+                        detail: {
+                            conversation : data.conversation,
+                            message_id: data.id,
+                        }
+                    
+                    })
+                    document.dispatchEvent(errorEvent);
+                    break;
             case "typing":
                 var typingEvent = new CustomEvent('typing'
                     , {
@@ -98,7 +105,6 @@ class ws{
                 break;
             case "pong":
                 this.pongReceived = true;
-                // console.log("Pong");
                 break;
         }
     }
@@ -115,6 +121,7 @@ class ws{
         document.addEventListener('sendmessage', (e) => {            
             this.ws.send(JSON.stringify({
                 type: "message",
+                id: e.detail.id,
                 receiver: e.detail.reciever,
                 content: e.detail.message
             }));

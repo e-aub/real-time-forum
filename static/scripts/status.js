@@ -51,6 +51,7 @@ class status {
             let user = this.users.get(e.detail.username);
             if (!user) {
                 this.getUsers();
+                return;
             };
             user.online = e.detail.online;
             let statusListElement = user.statusListElement.querySelector(".online-indicator");

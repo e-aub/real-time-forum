@@ -1,5 +1,4 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
-import { status } from "/static/scripts/status.js";
 import { Chat } from "/static/scripts/chat.js";
 import { ws } from "/static/scripts/ws.js";
 import { formatTimestamp, newEl } from "/static/scripts/utils.js";
@@ -144,7 +143,7 @@ export class HomePage extends Page {
       username
     );
 
-    const postBody = newEl("p", { class: "post-body" });
+    const postBody = newEl("pre", { class: "post-body" });
     postBody.textContent = `${post.content}`;
     const postDetails = newEl(
       "article",

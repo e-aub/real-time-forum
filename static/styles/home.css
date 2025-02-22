@@ -271,6 +271,7 @@ body {
     cursor: pointer;
     border-radius: 8px;
     gap: 12px;
+    position: relative;
 }
 
 .user-item:hover {
@@ -286,6 +287,10 @@ body {
 .user-item span {
     flex: 1;
     font-size: 15px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .online-indicator {
@@ -395,6 +400,11 @@ body {
 }
 .post-details .post-body {
     padding-left: 20px;
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: justify;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 .comments-title {
     text-align: center;

@@ -19,7 +19,6 @@ func FetchPost(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 		return
 	}
 	var post models.Posts
-	fmt.Println(id)
 	query := `SELECT id,user_id,content,categories,created_at FROM posts WHERE id = ?;`
 	if err := db.QueryRow(query, id).Scan(&post.Id, &post.UserId, &post.Content, &post.Categories, &post.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {

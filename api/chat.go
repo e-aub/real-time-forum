@@ -114,7 +114,6 @@ func (h *HubType) Run() {
 		case message := <-h.Broadcast:
 			h.BroadcastMessage(message, nil, nil)
 		case message := <-h.Private:
-			fmt.Println(message)
 			h.SendPrivateMessage(message)
 		}
 	}
@@ -267,7 +266,6 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int, userName string) {
 
 	for {
 		ok, limiter := middleware.GetRateLimiter(userId, &ChatUsersLimiters)
-		// fmt.Println(ok, limiter, "rate limiter")
 		if !ok {
 			limiter = middleware.NewRateLimiter(userId, 10, 10, time.Second)
 			ChatUsersLimiters.Store(userId, limiter)

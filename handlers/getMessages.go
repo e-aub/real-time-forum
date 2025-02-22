@@ -39,7 +39,6 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 
 	if err != nil || offset <= 0 {
-		fmt.Println("sender", userId, "receiver", opponnentId)
 		query := `SELECT COALESCE(
             (SELECT MAX(id) FROM messages 
              WHERE (sender_id = $1 AND receiver_id = $2) 
@@ -58,7 +57,6 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 			return
 		}
 	}
-	fmt.Println("offset:", offset)
 	query := `SELECT m.id, u.nickname, m.sender_id, m.receiver_id, u.firstname, u.lastname, m.content, m.created_at 
 	FROM messages m
 	JOIN users u ON m.sender_id = u.id

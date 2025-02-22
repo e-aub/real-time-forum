@@ -66,10 +66,15 @@ func validatePost(post Post) error {
 }
 
 func isValidCategories(categories []string) bool {
+	mp := make(map[string]bool)
 	for _, category := range categories {
-		if !utils.Contains(categories, category) {
+		if !utils.Contains(Categories, category) {
 			return false
 		}
+		if ok := mp[category]; ok {
+			return false
+		}
+		mp[category] = true
 	}
 	return true
 }

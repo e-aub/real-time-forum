@@ -30,8 +30,9 @@ function wsTest() {
     for (i; i < 300; i++) {
         ws.send(JSON.stringify({
             type: "message",
+            id: i,
             receiver: "tantan",
-            content: `Hello, Tantan! ${i}`,
+            content: `Hello, this is message ${i}`,
         }));
     }
   };

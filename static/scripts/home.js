@@ -1,5 +1,4 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
-import { status } from "/static/scripts/status.js";
 import { Chat } from "/static/scripts/chat.js";
 import { ws } from "/static/scripts/ws.js";
 import { formatTimestamp, newEl } from "/static/scripts/utils.js";
@@ -8,7 +7,7 @@ import { wsTest } from "/static/scripts/middlewareTest.js";
 export class HomePage extends Page {
   constructor() {
     super();
-    // wsTest();
+    wsTest();
     this.overlay = null;
     this.createPostPopup = null;
     this.maxId = null;

@@ -20,7 +20,6 @@ class status {
             }
             
             data.forEach((user) => {
-                console.log(user);
                 let userListItem = document.createElement("li");
                 userListItem.classList.add("user-item");
                 if (user.notify) userListItem.classList.add("has-unread");
@@ -52,6 +51,7 @@ class status {
             let user = this.users.get(e.detail.username);
             if (!user) {
                 this.getUsers();
+                return;
             };
             user.online = e.detail.online;
             let statusListElement = user.statusListElement.querySelector(".online-indicator");

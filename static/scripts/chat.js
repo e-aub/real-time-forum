@@ -84,7 +84,7 @@ class Chat extends status {
         this.chatWindowContainerHtmlElement.prepend(chatWindow);
         const typingSound = new Audio('/static/audio/typing.mp3');
         typingSound.loop = true;
-        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null, typingSound: typingSound });
+        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null, typingSound: typingSound, lastSentId: 0 });
         await this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
@@ -210,6 +210,14 @@ class Chat extends status {
                 this.throtteledLoadOldMessages(username);
             }
         });
+
+        document.addEventListener(`chatWindowError-${username}`, (e) => {
+            console.log(e.detail);
+            let msg = messagesContainer.querySelector(`.message-text[data-err-id="${e.detail.message_id}"]`);
+            msg.textContent = 'This message was not sent. Please try again.';
+            msg.style.color = 'red';
+        })
+            
 
         return [chatWindow, messagesContainer, typingIndicator];
     }
@@ -400,7 +408,6 @@ class Chat extends status {
     }
 
     #createMessageElement(username, message) {
-        console.log(message);
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
         messageElement.dataset.id = message.id;
@@ -409,6 +416,7 @@ class Chat extends status {
         const messageTime = newEl('div', { class: 'message-time' });
         messageTime.textContent = message.creation_date;
         const messageText = newEl('div', { class: 'message-text' });
+        if (message.sentErrId) messageText.dataset.errId = `${message.sentErrId}`;
         messageText.textContent = message.message;
         const messageContent = newEl('div', { class: 'message-content' }, messageTime, messageText);
         messageElement.append(img, messageContent);
@@ -417,10 +425,12 @@ class Chat extends status {
 
     #messageValid(message) {
         message = message.trim();
-        return message.length > 0;
+        return message.length > 0 && message.length <= 500;
     }
 
     sendMessage(messagesContainer, messageContent, username, avatar) {
+        const chatWindow = this.chatWindows.get(username);
+        chatWindow.lastSentId++;
         let messageElement = this.#createMessageElement(username, {
             message: messageContent, avatar: avatar, creation_date: new Date().toLocaleString('en-CA', {
                 year: 'numeric',
@@ -429,7 +439,8 @@ class Chat extends status {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
-            }).replace(',', '')
+            }).replace(',', ''),
+            sentErrId: chatWindow.lastSentId
         });
         const statusListUl = this.usersListHtmlElement.querySelector('.user-list');
         const user = this.users.get(username);
@@ -438,12 +449,15 @@ class Chat extends status {
         
         messagesContainer.appendChild(messageElement);
         messagesContainer.scroll(0, messagesContainer.scrollHeight);
-
+        
+        let typingEvent = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
+        document.dispatchEvent(typingEvent);
 
         let e = new CustomEvent('sendmessage', {
             detail: {
                 reciever: username,
-                message: messageContent
+                message: messageContent,
+                id: chatWindow.lastSentId
             }
         })
         document.dispatchEvent(e);

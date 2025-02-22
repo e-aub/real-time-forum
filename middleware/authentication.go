@@ -12,10 +12,11 @@ import (
 type CustomHandler func(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 
 type RateLimiter struct {
-	LastTime time.Time
-	Rate     int
-	Capacity int
-	Bucket   int
+	LastTime    time.Time
+	Rate        int
+	Capacity    int
+	Bucket      int
+	LimiterTime time.Duration
 }
 
 var UsersLimiters sync.Map
@@ -33,26 +34,26 @@ func CleanupLimiters(usersLimiters *sync.Map) {
 	}
 }
 
-func GetRateLimiter(userId int,usersLimiters *sync.Map) *RateLimiter {
+func GetRateLimiter(userId int, usersLimiters *sync.Map) (bool, *RateLimiter) {
 	limiter, ok := usersLimiters.Load(userId)
 	if !ok {
-		limiter = NewRateLimiter(userId, 10, 20, time.Second)
-		usersLimiters.Store(userId, limiter)
+		return false, nil
 	}
-	return limiter.(*RateLimiter)
+	return true, limiter.(*RateLimiter)
 }
 
 func NewRateLimiter(userId, rate, capacity int, limiterTime time.Duration) *RateLimiter {
 	return &RateLimiter{
-		LastTime: time.Now(),
-		Rate:     rate,
-		Capacity: capacity,
-		Bucket:   capacity,
+		LastTime:    time.Now(),
+		Rate:        rate,
+		Capacity:    capacity,
+		Bucket:      capacity,
+		LimiterTime: limiterTime,
 	}
 }
 
 func (r *RateLimiter) Allow() bool {
-	if time.Since(r.LastTime) >= time.Second {
+	if time.Since(r.LastTime) >= r.LimiterTime {
 		duration := time.Since(r.LastTime).Seconds()
 		r.LastTime = time.Now()
 		r.Bucket = min(r.Bucket+(int(duration)*r.Rate), r.Capacity)
@@ -103,7 +104,11 @@ func Middleware(db *sql.DB, next CustomHandler) http.HandlerFunc {
 			return
 		}
 
-		limiter := GetRateLimiter(userId,&UsersLimiters)
+		ok, limiter := GetRateLimiter(userId, &UsersLimiters)
+		if !ok {
+			limiter = NewRateLimiter(userId, 10, 20, time.Second)
+			UsersLimiters.Store(userId, limiter)
+		}
 		if !limiter.Allow() {
 			w.WriteHeader(http.StatusTooManyRequests)
 			return

@@ -20,24 +20,24 @@ type RateLimiter struct {
 
 var UsersLimiters sync.Map
 
-func CleanupLimiters() {
+func CleanupLimiters(usersLimiters *sync.Map) {
 	for {
 		time.Sleep(time.Minute * 3)
-		UsersLimiters.Range(func(key, value interface{}) bool {
+		usersLimiters.Range(func(key, value interface{}) bool {
 			limiter := value.(*RateLimiter)
 			if time.Since(limiter.LastTime) >= time.Minute*3 {
-				UsersLimiters.Delete(key)
+				usersLimiters.Delete(key)
 			}
 			return true
 		})
 	}
 }
 
-func GetRateLimiter(userId int) *RateLimiter {
-	limiter, ok := UsersLimiters.Load(userId)
+func GetRateLimiter(userId int,usersLimiters *sync.Map) *RateLimiter {
+	limiter, ok := usersLimiters.Load(userId)
 	if !ok {
 		limiter = NewRateLimiter(userId, 10, 20, time.Second)
-		UsersLimiters.Store(userId, limiter)
+		usersLimiters.Store(userId, limiter)
 	}
 	return limiter.(*RateLimiter)
 }
@@ -103,7 +103,7 @@ func Middleware(db *sql.DB, next CustomHandler) http.HandlerFunc {
 			return
 		}
 
-		limiter := GetRateLimiter(userId)
+		limiter := GetRateLimiter(userId,&UsersLimiters)
 		if !limiter.Allow() {
 			w.WriteHeader(http.StatusTooManyRequests)
 			return

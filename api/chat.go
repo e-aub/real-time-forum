@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"forum/middleware"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -72,6 +74,19 @@ type Message struct {
 	CreationDate string `json:"creation_date"`
 	Avatar       string `json:"avatar"`
 }
+
+type ClientRateLimiters struct {
+	Client
+}
+
+type RateLimiter struct {
+	LastTime time.Time
+	Rate     int
+	Capacity int
+	Bucket   int
+}
+
+var ChatUsersLimiters sync.Map
 
 /*---------- upgrade connection from http to ws ----------*/
 var upgrader = websocket.Upgrader{
@@ -165,6 +180,11 @@ func (h *HubType) UnregisterClient(client Client) {
 	defer h.Mu.Unlock()
 
 	if len(client.Conns) == 0 {
+		conns := h.Clients[client.Username].Conns
+		for _, conn := range conns {
+			conn.Close()
+		}
+		fmt.Println("closing all connections")
 		delete(h.Clients, client.Username)
 		return
 	}
@@ -239,6 +259,7 @@ func Upgrade(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 		fmt.Fprintln(os.Stderr, "invalid username!")
 		return
 	}
+	// ChatUsersLimiters.Store(userId, middleware.NewRateLimiter(userId, 10, 20, time.Second))
 	Hub.Register <- Client{Conns: []*websocket.Conn{conn}, Username: username, UserId: userId}
 	go handleConn(conn, db, userId)
 }
@@ -279,6 +300,12 @@ func handleConn(conn *websocket.Conn, db *sql.DB, userId int) {
 		if err := conn.ReadJSON(&message); err != nil {
 			Hub.Unregister <- Client{Conns: []*websocket.Conn{conn}, Username: userName}
 			fmt.Fprintln(os.Stderr, err)
+			break
+		}
+		limiter := middleware.GetRateLimiter(userId, &ChatUsersLimiters)
+		if !limiter.Allow() {
+			fmt.Println("rate limit exceeded")
+			Hub.Unregister <- Client{Conns: []*websocket.Conn{}, Username: userName}
 			break
 		}
 		if message.Type == "message" {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"forum/api"
 	"forum/middleware"
@@ -13,8 +12,6 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-var UsersLimiters sync.Map
 
 func main() {
 	port := "0.0.0.0:8080"
@@ -29,7 +26,8 @@ func main() {
 
 	go api.Hub.Run()
 	go api.Hub.PingService()
-	go middleware.CleanupLimiters()
+	go middleware.CleanupLimiters(&middleware.UsersLimiters)
+	go middleware.CleanupLimiters(&api.ChatUsersLimiters)
 
 	fmt.Printf("Server running in 'http://%s'\n", port)
 	if err := http.ListenAndServe(port, mainMux); err != nil {

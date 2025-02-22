@@ -26,7 +26,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
 	WHERE u.id != $1
 	GROUP BY u.id
 	ORDER BY MAX(m.id) DESC, u.firstname, u.lastname ASC;
-
 	`
 
 	rows, err := db.Query(query, userId)

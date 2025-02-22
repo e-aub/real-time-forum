@@ -130,4 +130,4 @@ class ws{
     }
 }
 
-export  {ws}
+export  { ws }

@@ -20,21 +20,14 @@ type User struct {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int) {
-	query := `SELECT u.nickname, u.firstname, u.lastname, COALESCE(m.seen, true) AS notify 
-FROM users u
-LEFT JOIN messages ON u.id = messages.sender_id OR u.id = messages.receiver_id
-LEFT JOIN messages m ON u.id = m.sender_id AND m.receiver_id = $1
-AND m.id = (
-    SELECT MAX(id) 
-    FROM messages 
-    WHERE (	sender_id = $1 AND receiver_id = u.id
-	OR sender_id = u.id AND receiver_id = $1)
-)
-WHERE u.id != $1 
-GROUP BY u.id
-ORDER BY MAX(messages.id) DESC, u.firstname, u.lastname ASC;
+	query := `SELECT u.nickname, u.firstname, u.lastname, COALESCE(m.seen, true) AS notify
+	FROM users u
+	LEFT JOIN messages m ON (u.id = m.sender_id OR u.id = m.receiver_id) AND (m.sender_id = $1 OR m.receiver_id = $1)
+	WHERE u.id != $1
+	GROUP BY u.id
+	ORDER BY MAX(m.id) DESC, u.firstname, u.lastname ASC;
 
-`
+	`
 
 	rows, err := db.Query(query, userId)
 	if err != nil {

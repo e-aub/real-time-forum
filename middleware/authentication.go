@@ -83,8 +83,15 @@ func Middleware(db *sql.DB, next CustomHandler) http.HandlerFunc {
 		var userId int
 		var expiresAtStr string
 		err = db.QueryRow("SELECT user_id, expires_at FROM sessions WHERE token=?", token).Scan(&userId, &expiresAtStr)
-
 		if err == sql.ErrNoRows {
+			cookie := http.Cookie{
+				Name:     "token",
+				Value:    "",
+				MaxAge:   -1,
+				HttpOnly: true,
+				Path:     "/",
+			}
+			http.SetCookie(w, &cookie)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		} else if err != nil {

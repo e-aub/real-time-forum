@@ -197,6 +197,8 @@ export class HomePage extends Page {
       submitBtn
     );
 
+    const commentErr = newEl("p", { class: "error-comment-text" });
+
     const commentForm = newEl(
       "form",
       {
@@ -205,7 +207,8 @@ export class HomePage extends Page {
         method: "POST",
         novalidate: "true",
       },
-      formGroup
+      formGroup,
+      commentErr
     );
     commentForm.addEventListener("submit", (e) => this.createComment(e));
     // Create main container and append everything
@@ -272,10 +275,10 @@ export class HomePage extends Page {
     const postId = form.querySelector(".comment-btn").dataset.postid;
 
     if (!content) {
-      this.displayError("Comment cannot be empty.");
+      this.displayCommentError("Comment cannot be empty.");
       return;
     } else if (content.length > 500) {
-      this.displayError("Comment is too long.");
+      this.displayCommentError("Comment is too long.");
     }
 
     try {
@@ -303,7 +306,7 @@ export class HomePage extends Page {
         true
       );
     } catch (error) {
-      this.displayError(error);
+      this.displayCommentError(error);
     }
   }
 
@@ -355,6 +358,13 @@ export class HomePage extends Page {
     let errDiv = document.querySelector(".error-text");
     errDiv.textContent = message;
   }
+
+
+  displayCommentError(message) {
+    let errDiv = document.querySelector(".error-comment-text");
+    errDiv.textContent = message;
+  }
+
 
   createCommentElement(comment, commentsContainer, newcomment = false) {
     const commentProfileImg = newEl("img", {

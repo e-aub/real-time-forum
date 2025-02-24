@@ -9,7 +9,7 @@ export class SignupPage extends Page {
             gender: '',
             firstname: '',
             lastname: '',
-            email: '',
+            email: '', 
             password: '',
             password2: ''
         };
@@ -26,7 +26,7 @@ export class SignupPage extends Page {
     validateName(value, field) {
         if (!value) return `${field} is required`;
         if (value.length < 4) return `${field} must be at least 4 characters`;
-        if (!/^[a-zA-Z\s-']+$/.test(value)) return `${field} can only contain letters, spaces, hyphens and apostrophes`;
+        if (!/^([a-zA-Z]+\s?){3,29}[a-zA-Z]+$/.test(value)) return `${field} can only contain letters, spaces, hyphens, and apostrophes`;
         return '';
     }
 

@@ -12,7 +12,9 @@ class Router {
 
   
     initialize() {
-        window.addEventListener('popstate', () => this.route(location.pathname));
+        window.addEventListener('popstate', () => {
+            this.route(location.pathname, false);
+        });
         this.route(location.pathname); 
     }
 
@@ -36,8 +38,10 @@ class Router {
 
         const authenticated = await this.isAuthenticated();
         if (!authenticated && routeName === '/') {
+            updateHistory = true;
             routeName = '/login';
         }else if (authenticated && (routeName === '/login' || routeName === '/signup')) {
+            updateHistory = true;
             routeName = '/';
         }
 

@@ -8,12 +8,6 @@ class User{
         this.conversationWindow = null;
         this.statusListElement  = data.statusListElement;
     }
-    
-    initEventListeners(){
-        
-    }
-
-
 }
 
 export { User };

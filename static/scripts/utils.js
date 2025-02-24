@@ -4,7 +4,7 @@ function generateAvatar(firstName, lastname) {
 
 function formatTimestamp(timestamp) {
     const date = timestamp ? new Date(timestamp) : new Date();
-    date.setTime(date.getTime() + 3600000);
+    date.setTime(date.getTime());
     const diff = Math.floor((Date.now() - date) / 1000);
     if (diff < 60) return "Just now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;

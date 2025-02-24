@@ -20,6 +20,11 @@ func main() {
 		log.Fatal(db_err.Error())
 	}
 
+	_, err := db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mainMux := http.NewServeMux()
 	mainMux.Handle("/api/", router.APIRouter(db))
 	mainMux.Handle("/", router.WebRouter())

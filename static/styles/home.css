@@ -797,6 +797,26 @@ p.post-body {
 .message-time {
     font-size: 11px;
     color: #65676b;
+    margin: 0;
+}
+
+.message-username{
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0;
+}
+
+.message.error-message .message-text {
+    color : red;
+}
+.message.received .message-username {
+    color: #65676b;
+    text-align: left;
+}
+
+.message.sent .message-username {
+    color: #050505;
+    text-align: right;
 }
 
 .message.sent .message-time {

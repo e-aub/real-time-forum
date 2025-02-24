@@ -1,0 +1,20 @@
+.login-btn, .signup-btn { 
+    background-color: #3b5998;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.home-link {
+    cursor: pointer;
+    display: block;
+    text-align: center;
+    color: #1877f2;
+    text-decoration: none;
+    margin-top: 20px;
+    font-size: 14px;
+}

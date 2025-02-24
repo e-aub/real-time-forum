@@ -25,7 +25,7 @@ export class SignupPage extends Page {
 
     validateName(value, field) {
         if (!value) return `${field} is required`;
-        if (value.length < 2) return `${field} must be at least 2 characters`;
+        if (value.length < 4) return `${field} must be at least 4 characters`;
         if (!/^[a-zA-Z\s-']+$/.test(value)) return `${field} can only contain letters, spaces, hyphens and apostrophes`;
         return '';
     }
@@ -173,8 +173,6 @@ export class SignupPage extends Page {
     }
 
     render() {
-        this.switchCss("signup-style");
-
         document.querySelector("#app").innerHTML = signUpTemplate;
 
         const form = document.getElementById('signupForm');

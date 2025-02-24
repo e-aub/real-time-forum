@@ -116,7 +116,6 @@ export class LoginPage extends Page {
     }
 
     async render() {
-            this.switchCss("login-style");
             document.querySelector("#app").innerHTML = loginTemplate;
             const form = document.getElementById('loginForm');
             const emailInput = form.querySelector('input[name="login_name"]');

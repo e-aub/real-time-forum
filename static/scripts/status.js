@@ -1,10 +1,14 @@
 import { User } from "/static/scripts/user.js";
+import { ws } from "/static/scripts/ws.js";
+
 
 class status {
     constructor(){
         this.users = new Map();
         this.getUsers();
         this.initListeners();
+        this.Ws = new ws();
+
     }
     async getUsers(){
         try {

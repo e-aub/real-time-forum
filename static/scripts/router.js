@@ -1,6 +1,7 @@
 import { HomePage } from '/static/scripts/home.js';
 import { LoginPage } from '/static/scripts/login.js';
 import { SignupPage } from '/static/scripts/signup.js';
+import { NotFoundPage } from '/static/scripts/notFound.js';
 
 class Router {
     constructor(classes = {}) {
@@ -27,7 +28,11 @@ class Router {
 
     async route(routeName, updateHistory = true) {
         let clas = this.classes[routeName]
-        if (!clas) return this.render404();
+        if (!clas) {
+            new NotFoundPage();
+            history.pushState(null, null, window.location.pathname);
+            return;       
+        }
 
         const authenticated = await this.isAuthenticated();
         if (!authenticated && routeName === '/') {
@@ -52,13 +57,9 @@ class Router {
     navigate(routeName) {
         this.route(routeName, true);
     }
-
-    render404() {
-        document.body.textContent = '404 - Page Not Found';
-    }
 }
 
-const router = new Router({
+var router = new Router({
     '/': HomePage,
     '/login': LoginPage,
     '/signup': SignupPage,

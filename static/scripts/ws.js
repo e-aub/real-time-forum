@@ -1,36 +1,32 @@
 
-class ws{
-    constructor(){
+class ws {
+    constructor() {
         this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
         this.ws.onmessage = this.onmessage.bind(this);
-        this.ws.onerror =  this.reconnect.bind(this);
-        this.ws.onclose =  this.reconnect.bind(this);
         this.ws.onopen = this.onopen.bind(this);
         this.initListeners();
-        this.pongReceived = false;
-        this.reconnecting = false;
+        this.pongReceived = true;
         this.retryInterval = null;
         this.pingInterval = setInterval(async () => {
             const res = await fetch("/api/authenticated");
-                if (res.status === 401) {
-                    this.ws.close();
-                    clearInterval(this.pingInterval);
-                    return;
-                }
+            if (res.status === 401) {
+                this.ws.close();
+                clearInterval(this.pingInterval);
+                return;
+            }
             if (!this.pongReceived) {
                 this.reconnect();
-            }else{
+            } else {
                 this.pongReceived = false;
                 this.ping();
             }
-            
+
         }, 5000);
     }
 
-    reconnect(event){
-        if (this.reconnecting) return;
+    reconnect() {
+        this.pongReceived = true;
         this.ws.close();
-        this.reconnecting = true;
         console.log("Reconnecting to WebSocket server");
 
         this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
@@ -38,23 +34,29 @@ class ws{
         this.ws.onopen = this.onopen.bind(this);
     }
 
-    onopen(){
-        this.reconnecting = false;
-        this.ping(); 
+    onopen() {
+        console.log("WebSocket opened");
     }
 
-    ping(){
-        console.log(this.ws.readyState)
-        if (this.ws.readyState === WebSocket.OPEN){
-        this.ws.send(JSON.stringify({type: "ping"}));
-    }else{
-        this.reconnect();
+    ping() {
+        if (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState == WebSocket.CLOSING) {
+            this.pongReceived  = true;
+            console.log("websocket is connecting or closing");
+            return;
+        } else if (this.ws.readyState === WebSocket.OPEN) {
+            this.pongReceived = true;
+            console.log("websocket is open");
+            this.ws.send(JSON.stringify({ type: "ping" }));
+        } else {
+            console.log("websocket is closed");
+            this.pongReceived = false;
+            this.reconnect();
+        }
     }
-    }
-    
-    onmessage(event){
+
+    onmessage(event) {
         let data = JSON.parse(event.data);
-        switch(data.type){
+        switch (data.type) {
             case "status":
                 let statusEvent = new CustomEvent('status'
                     , {
@@ -70,7 +72,7 @@ class ws{
                 let chatEvent = new CustomEvent('message'
                     , {
                         detail: {
-                            id : data.id,
+                            id: data.id,
                             avatar: data.avatar,
                             message: data.content,
                             sender: data.sender,
@@ -85,13 +87,13 @@ class ws{
                 let errorEvent = new CustomEvent(`chatWindowError-${data.conversation}`
                     , {
                         detail: {
-                            conversation : data.conversation,
+                            conversation: data.conversation,
                             message_id: data.id,
                         }
-                    
+
                     })
-                    document.dispatchEvent(errorEvent);
-                    break;
+                document.dispatchEvent(errorEvent);
+                break;
             case "typing":
                 var typingEvent = new CustomEvent('typing'
                     , {
@@ -109,7 +111,7 @@ class ws{
         }
     }
 
-    initListeners(){
+    initListeners() {
         document.addEventListener('sendtyping', (e) => {
             this.ws.send(JSON.stringify({
                 type: "typing",
@@ -118,7 +120,7 @@ class ws{
             }));
         });
 
-        document.addEventListener('sendmessage', (e) => {            
+        document.addEventListener('sendmessage', (e) => {
             this.ws.send(JSON.stringify({
                 type: "message",
                 id: e.detail.id,
@@ -127,7 +129,10 @@ class ws{
             }));
         });
 
+        document.addEventListener('closeWs', (e) => {
+            this.ws.close();
+        });
     }
 }
 
-export  { ws }
+export { ws }

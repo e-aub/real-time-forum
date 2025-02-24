@@ -11,6 +11,7 @@ class Chat extends status {
         this.chatList = new Map();
         this.myData = myData;
         this.init();
+        console.log(this.myData);
     }
 
     init() {
@@ -34,26 +35,28 @@ class Chat extends status {
         });
 
         document.addEventListener('message', (e) => {
-            const audio = new Audio('/static/audio/message.mp3');
-            audio.play();
-            
             const statusListUl = this.usersListHtmlElement.querySelector('.user-list');
             const user = this.users.get(e.detail.sender);
             const statusListElement = user.statusListElement;
             statusListUl.prepend(statusListElement);
             
-            if (this.chatWindows.has(e.detail.sender)) {
-                var chatWindow = this.chatWindows.get(e.detail.sender);
+            var chatWindow = this.chatWindows.get(e.detail.sender);
+            if (chatWindow) {
                     chatWindow.typingIndicator.classList.remove('visible');
                     const chatContainer = chatWindow.messagesContainer;
                     const messageElement = this.#createMessageElement(e.detail.sender, e.detail);
                     chatContainer.appendChild(messageElement);
-                    chatContainer.scroll(0, chatContainer.scrollHeight);
+                    if (chatWindow.focused) {
+                        chatContainer.scroll(0, chatContainer.scrollHeight);
+                        this.#markMessageAsSeen(e.detail.id);
+                    }
             }
-        
+          
             if (!chatWindow || !chatWindow.focused) {
                 user.statusListElement.classList.add('has-unread');
             }
+            const audio = new Audio('/static/audio/message.mp3');
+            audio.play();
         });
         
 
@@ -214,7 +217,7 @@ class Chat extends status {
         document.addEventListener(`chatWindowError-${username}`, (e) => {
             console.log(e.detail);
             let msg = messagesContainer.querySelector(`.message-text[data-err-id="${e.detail.message_id}"]`);
-            msg.textContent = 'This message was not sent. Please try again.';
+            msg.textContent = 'This message was not sent';
             msg.style.color = 'red';
         })
             
@@ -248,27 +251,31 @@ class Chat extends status {
             }
         }
         if (user.statusListElement.classList.contains('has-unread')) {
-            try{
-                const receivedMessages = this.chatWindows.get(user.username).messagesContainer.querySelectorAll('.message.received:not(.typing-indicator)');
-                const lastMessageId = receivedMessages[receivedMessages.length - 1].dataset.id;
-
-                
-                const queryParams = new URLSearchParams({
-                    message_id: lastMessageId
-                })
-
-                const res = await fetch(`/api/seen?${queryParams.toString()}`, {
-                    method: 'PUT',
-                }
-                )
-
-                if (res.status === 204){
-                    user.statusListElement.classList.remove('has-unread');
-                }
-            }catch(err){
-                console.error(err);
-            }            
+            const receivedMessages = this.chatWindows.get(user.username).messagesContainer.querySelectorAll('.message.received:not(.typing-indicator)');
+            const lastMessageId = receivedMessages[receivedMessages.length - 1].dataset.id;
+            const success = await this.#markMessageAsSeen(lastMessageId);
+            if (success) {
+                user.statusListElement.classList.remove('has-unread');
+            }
         }
+    }
+
+    async #markMessageAsSeen(messageId) {
+        try{
+            const queryParams = new URLSearchParams({
+                message_id: messageId
+            })
+
+            const res = await fetch(`/api/seen?${queryParams.toString()}`, {
+                method: 'PUT',
+            }
+            )
+
+            return res.status === 204;
+        }catch(err){
+            console.error(err);
+            return false
+        }            
     }
     
 
@@ -412,13 +419,15 @@ class Chat extends status {
         messageElement.classList.add('message', message.sender !== username ? 'sent' : 'received');
         messageElement.dataset.id = message.id;
         let avatar = (this.users.get(message.sender)?.avatar ? this.users.get(message.sender).avatar : this.myData.avatar_url);
+        let messageUsername = newEl('div', { class: 'message-username' });
+        messageUsername.textContent = message.sender;
         const img = newEl('img', { src: avatar, class: 'message-avatar', alt: message.sender });
         const messageTime = newEl('div', { class: 'message-time' });
         messageTime.textContent = message.creation_date;
         const messageText = newEl('div', { class: 'message-text' });
         if (message.sentErrId) messageText.dataset.errId = `${message.sentErrId}`;
         messageText.textContent = message.message;
-        const messageContent = newEl('div', { class: 'message-content' }, messageTime, messageText);
+        const messageContent = newEl('div', { class: 'message-content' },messageUsername, messageTime, messageText);
         messageElement.append(img, messageContent);
         return messageElement;
     }
@@ -429,9 +438,21 @@ class Chat extends status {
     }
 
     sendMessage(messagesContainer, messageContent, username, avatar) {
+        if (this.Ws.ws.readyState !== WebSocket.OPEN) {
+            const errMsg = this.#createMessageElement(username, {
+                sender: this.myData.nickname,
+                message: "message can't be sent due to connection loss or you are rate limited, please try again in a few seconds",
+                avatar: this.myData.avatar_url
+            });
+            errMsg.classList.add('error-message');
+            messagesContainer.appendChild(errMsg);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return;
+        }
         const chatWindow = this.chatWindows.get(username);
         chatWindow.lastSentId++;
         let messageElement = this.#createMessageElement(username, {
+            sender: this.myData.nickname,
             message: messageContent, avatar: avatar, creation_date: new Date().toLocaleString('en-CA', {
                 year: 'numeric',
                 month: '2-digit',
@@ -448,7 +469,7 @@ class Chat extends status {
         statusListUl.prepend(statusListElement);
         
         messagesContainer.appendChild(messageElement);
-        messagesContainer.scroll(0, messagesContainer.scrollHeight);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
         let typingEvent = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
         document.dispatchEvent(typingEvent);

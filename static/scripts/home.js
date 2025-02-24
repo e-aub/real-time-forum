@@ -1,6 +1,5 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { Chat } from "/static/scripts/chat.js";
-import { ws } from "/static/scripts/ws.js";
 import { formatTimestamp, newEl } from "/static/scripts/utils.js";
 
 export class HomePage extends Page {
@@ -12,7 +11,6 @@ export class HomePage extends Page {
     this.lastCommentId = null;
     this.userData = null;
     this.postData = null;
-    this.Ws = new ws();
   }
 
   async render() {
@@ -21,7 +19,6 @@ export class HomePage extends Page {
       if (response.ok) {
         const data = await response.json();
         this.userData = data;
-        this.switchCss("home-style");
         document.querySelector("#app").innerHTML = await ParseHomeTemplate(data);
         this.overlay = document.querySelector(".overlay");
         await this.init();
@@ -85,7 +82,8 @@ export class HomePage extends Page {
       .querySelector(".user-profile")
       ?.addEventListener("click", async (e) => {
         if (e.target.classList.contains("logout-btn")) {
-          this.Ws.ws.close();
+          const closeEvent = new Event("closeWs");
+          document.dispatchEvent(closeEvent);
           try {
             const response = await fetch("/api/logout", { method: "POST" });
             if (response.ok) this.navigate("/login");

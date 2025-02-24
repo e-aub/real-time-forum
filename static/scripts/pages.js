@@ -8,21 +8,6 @@ class Page {
     navigate(path) {
         router.route(path);
     }
-
-    switchCss(id) {
-        let styles = document.querySelectorAll('link[rel="stylesheet"]');
-        
-        styles.forEach(style => {
-            console.log(style.disabled);
-            
-            if (style.id === id) {
-                style.disabled = false;
-            } else {
-                style.disabled = true;
-            }
-        }
-        )
-    }
 }
 
 const signUpTemplate = `
@@ -160,12 +145,6 @@ const loginTemplate = `
                     </div>
                 `;
 async function ParseHomeTemplate(userData) {
-    document.querySelector("link[rel='stylesheet']")?.remove();
-    let link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = '/static/styles/home.css';
-    document.head.appendChild(link);
     return `<div class="header">
         <img class="logo" src="/static/images/logo.png" alt="talk" />
          <button class="mobile-menu-btn">
@@ -244,5 +223,23 @@ async function ParseHomeTemplate(userData) {
     </div>`;
 }
 
+const NotFoundTemplate = `
+        <div class="header">
+                <img class="logo" src="/static/images/logo.png" alt="talk" />
+                <div class="buttons">
+                <button class="login-btn">Login</button>
+                <button class="signup-btn">Sign Up</button>
+                </div>
+        </div>
+    <div class="container">
+    <div class="error-container">
+    <div class="error-title">404</div>
+    <div class="error-message">Oops! The page you are looking for cannot be found.</div>
+    <div class="divider"></div>
+    <a class="home-link">Go to Home</a>
+    </div>
+    </div>
+`
 
-export { Page, ParseHomeTemplate, loginTemplate, signUpTemplate };
+
+export { Page, ParseHomeTemplate, loginTemplate, signUpTemplate, NotFoundTemplate };

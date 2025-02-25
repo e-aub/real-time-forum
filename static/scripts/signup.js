@@ -9,7 +9,7 @@ export class SignupPage extends Page {
             gender: '',
             firstname: '',
             lastname: '',
-            email: '',
+            email: '', 
             password: '',
             password2: ''
         };
@@ -17,7 +17,7 @@ export class SignupPage extends Page {
 
     validateNickname(value) {
         if (!value) return 'Nickname is required';
-        if (value.length < 3) return 'Nickname must be at least 3 characters';
+        if (value.length < 4) return 'Nickname must be at least 4 characters';
         if (value.length > 20) return 'Nickname must be less than 20 characters';
         if (!/^[a-zA-Z1-9-_]{4,30}$/.test(value)) return 'Nickname can only contain letters, numbers, hyphen and underscores';
         return '';
@@ -26,7 +26,7 @@ export class SignupPage extends Page {
     validateName(value, field) {
         if (!value) return `${field} is required`;
         if (value.length < 4) return `${field} must be at least 4 characters`;
-        if (!/^[a-zA-Z\s-']+$/.test(value)) return `${field} can only contain letters, spaces, hyphens and apostrophes`;
+        if (!/^([a-zA-Z]+\s?){3,29}[a-zA-Z]+$/.test(value)) return `${field} can only contain letters, spaces, hyphens, and apostrophes`;
         return '';
     }
 

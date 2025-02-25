@@ -106,7 +106,7 @@ body {
     cursor: pointer;
 }
 
-.error-text {
+.error-text, .error-comment-text {
     color: red;
     font-size: 13px;
     margin-top: 4px;
@@ -246,7 +246,6 @@ body {
 .users-list {
     width: 300px;
     min-width: 300px;
-    height: 100%;
     margin-top: 70px;
     overflow-y: auto;
     border-left: 1px solid #e0e0e0;

@@ -1,5 +1,5 @@
 import { status } from "/static/scripts/status.js";
-import { newEl } from "./utils.js";
+import { newEl, debounce } from "./utils.js";
 
 class Chat extends status {
     constructor(myData) {
@@ -11,7 +11,6 @@ class Chat extends status {
         this.chatList = new Map();
         this.myData = myData;
         this.init();
-        console.log(this.myData);
     }
 
     init() {
@@ -207,15 +206,13 @@ class Chat extends status {
         chatWindow.appendChild(header);
         chatWindow.appendChild(messagesContainer);
         chatWindow.appendChild(inputArea);
-
         messagesContainer.addEventListener('scroll', () => {
-            if (messagesContainer.scrollTop <= 20) {
-                this.throtteledLoadOldMessages(username);
+            if (messagesContainer.scrollTop <= 0) {
+                this.debouncedLoadOldMessages(username);
             }
         });
 
         document.addEventListener(`chatWindowError-${username}`, (e) => {
-            console.log(e.detail);
             let msg = messagesContainer.querySelector(`.message-text[data-err-id="${e.detail.message_id}"]`);
             msg.textContent = 'This message was not sent';
             msg.style.color = 'red';
@@ -359,17 +356,6 @@ class Chat extends status {
         }, 1000);
     }
 
-
-    debounce(func, delay) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                func.apply(this, args);
-            }, delay);
-        }
-    }
-
     async loadOldMessages(username, scroll = false) {
         let chatWindow = this.chatWindows.get(username);
         try {
@@ -389,29 +375,20 @@ class Chat extends status {
         }
     }
 
-    throttle(func, delay) {
-        let lastCall = 0;
-        return function (...args) {
-            const now = Date.now();
-            if (now - lastCall < delay) {
-                return;
-            }
-            lastCall = now;
-            func.apply(this, args);
-        }
-    }
-
-    throtteledLoadOldMessages = this.throttle(this.loadOldMessages, 1000);
+    debouncedLoadOldMessages = debounce(this.loadOldMessages.bind(this), 500);
 
     appendMessages(username, messages, scroll) {
+
         let chatWindow = this.chatWindows.get(username);
         let chatContainer = chatWindow.element.querySelector('.chat-messages');
+        var lastHeight = chatContainer.scrollHeight;
+
         messages?.forEach(message => {
             chatContainer.prepend(this.#createMessageElement(username, message));
-            if (scroll) {
-                chatContainer.scroll(0, chatContainer.scrollHeight);
-            }
         })
+
+        chatContainer.scrollTop = chatContainer.scrollHeight-lastHeight;
+
     }
 
     #createMessageElement(username, message) {

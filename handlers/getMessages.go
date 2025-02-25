@@ -56,6 +56,7 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 			utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
+		offset++
 	}
 	query := `SELECT m.id, u.nickname, m.sender_id, m.receiver_id, u.firstname, u.lastname, m.content, m.created_at 
 	FROM messages m
@@ -65,7 +66,7 @@ func GetMessages(w http.ResponseWriter, r *http.Request, db *sql.DB, userId int)
 	ORDER BY m.id DESC 
 	LIMIT 10;`
 
-	rows, err := db.Query(query, userId, opponnentId, offset+1)
+	rows, err := db.Query(query, userId, opponnentId, offset)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		utils.JsonErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

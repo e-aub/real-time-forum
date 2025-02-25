@@ -63,7 +63,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func CheckName(name string) bool {
-	re, err := regexp.Compile(`^[a-zA-Z ]{4,50}$`)
+	re, err := regexp.Compile(`^([a-zA-Z]+\s?){3,29}[a-zA-Z]+$`)
 	if err != nil {
 		return false
 	}

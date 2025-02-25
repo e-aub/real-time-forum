@@ -27,8 +27,6 @@ class ws {
     reconnect() {
         this.pongReceived = true;
         this.ws.close();
-        console.log("Reconnecting to WebSocket server");
-
         this.ws = new WebSocket(`ws://${window.location.hostname}:8080/api/ws`);
         this.ws.onmessage = this.onmessage.bind(this);
         this.ws.onopen = this.onopen.bind(this);
@@ -83,7 +81,6 @@ class ws {
                 document.dispatchEvent(chatEvent);
                 break;
             case "error":
-                console.log(data);
                 let errorEvent = new CustomEvent(`chatWindowError-${data.conversation}`
                     , {
                         detail: {

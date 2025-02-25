@@ -1,6 +1,6 @@
 import { Page, ParseHomeTemplate } from "/static/scripts/pages.js";
 import { Chat } from "/static/scripts/chat.js";
-import { formatTimestamp, newEl } from "/static/scripts/utils.js";
+import { formatTimestamp, newEl, debounce } from "/static/scripts/utils.js";
 
 export class HomePage extends Page {
   constructor() {
@@ -51,36 +51,45 @@ export class HomePage extends Page {
 
   setupEventListeners() {
     // hide comments
-    document
-      .querySelector("#backgroundOverlay")
-      ?.addEventListener("click", (e) => {
-        e.target.style.display = "none";
-        document.querySelector("#commentsSection").style.display = "none";
-      });
+    const overlayHandler = (e) => {
+      this.lastCommentId = null;
+      e.target.style.display = "none";
+      document.querySelector("#commentsSection").style.display = "none";
+    }
+    document.querySelector("#backgroundOverlay")?.addEventListener("click", overlayHandler);
 
-    document.querySelector(".mobile-menu-btn")?.addEventListener("click", () => {
+
+    // mobile menu
+
+    const mobileBtnHandler = (e) => {
       document.querySelector(".users-list")?.classList.toggle("active");
-    });
+    }
 
-    document
-      .getElementById("create-post-input")
-      ?.addEventListener("click", () => {
-        this.toggleHidden([this.createPostPopup, this.overlay]);
-        this.createPostPopup.querySelector(".form-input")?.focus();
-      });
+    document.querySelector(".mobile-menu-btn")?.addEventListener("click", mobileBtnHandler);
 
-    this.overlay?.addEventListener("click", (e) => {
-      if (e.target === this.overlay)
-        this.toggleHidden([this.overlay, this.createPostPopup]);
-    });
+    // create post
+    const createPostHandler = (e) => {
+      this.toggleHidden([this.createPostPopup, this.overlay]);
+      this.createPostPopup.querySelector(".form-input")?.focus();
+    }
+    document.getElementById("create-post-input")?.addEventListener("click", createPostHandler);
 
-    document
-      .getElementById("createPostForm")
-      ?.addEventListener("submit", (e) => this.createPost(e));
+    // overlay
+    const overlayClickHandler = (e) => {
+      if (e.target === this.overlay) this.toggleHidden([this.overlay, this.createPostPopup]);
+    }
+    this.overlay?.addEventListener("click", overlayClickHandler);
 
-    document
-      .querySelector(".user-profile")
-      ?.addEventListener("click", async (e) => {
+    // submit post form
+
+    const submitPostFormHandler = (e) => {
+      this.createPost(e);
+    }
+    document.getElementById("createPostForm")?.addEventListener("submit", submitPostFormHandler);
+
+    // profile popup
+
+    const profilePopupHandler = async (e) => {
         if (e.target.classList.contains("logout-btn")) {
           const closeEvent = new Event("closeWs");
           document.dispatchEvent(closeEvent);
@@ -92,35 +101,27 @@ export class HomePage extends Page {
           }
         }
         this.toggleHidden([document.querySelector(".profile-popup")]);
-      });
+    };
 
-    let throttledGetPosts = this.throttle(this.getPosts.bind(this), 500);
-    document.addEventListener("scroll", () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 10
-      ) {
+    document.querySelector(".user-profile")?.addEventListener("click", profilePopupHandler);
+
+    
+    // scroll event
+    
+    let debouncedGetPosts = debounce(this.getPosts.bind(this), 1000);
+
+
+    var container = document.querySelector(".container");
+    const scrollHandler = (e) => {
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight-10) {
         if (this.maxId <= 0) {
-          console.log("no more posts to show");
           return;
         }
-        console.log("SCROLL EVENT");
-        throttledGetPosts();
-      }
-    });
-  }
-
-  throttle(func, limit) {
-    let inThrottle = false;
-    return (...args) => {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => {
-          inThrottle = false;
-        }, limit);
+        debouncedGetPosts();
       }
     };
+
+    container?.addEventListener("scroll", scrollHandler);
   }
 
   async createPostCommentsPopup(post) {
@@ -159,18 +160,19 @@ export class HomePage extends Page {
       postDetails,
       commentList
     );
-    let throttleGetComments = this.throttle(this.getComments.bind(this), 500);
-    commentContent.addEventListener("scroll", (e) => {
+
+    // comments scroll event
+    let debouncedGetComments = debounce(this.getComments.bind(this), 1000);
+    const commentScrollHandler = (e) => {
       const scrollElement = e.target;
       if (scrollElement.scrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight) {
         if (this.lastCommentId <= 0) {
-          // console.log("no more comments to show");
           return;
         }
-        // console.log("loading more comments");
-        throttleGetComments(post.post_id, commentList);
-      }
-    });
+        debouncedGetComments(post.post_id, commentList);
+    }
+  }
+    commentContent.addEventListener("scroll", commentScrollHandler);
 
     // Create comment form
     const input = newEl("input", {
@@ -197,6 +199,8 @@ export class HomePage extends Page {
       submitBtn
     );
 
+    const commentErr = newEl("p", { class: "error-comment-text" });
+
     const commentForm = newEl(
       "form",
       {
@@ -205,9 +209,17 @@ export class HomePage extends Page {
         method: "POST",
         novalidate: "true",
       },
-      formGroup
+      formGroup,
+      commentErr
     );
-    commentForm.addEventListener("submit", (e) => this.createComment(e));
+
+    // comment form event
+    const commentFormHandler = (e) => {
+      this.createComment(e);
+    };
+    commentForm.addEventListener("submit", commentFormHandler);
+
+
     // Create main container and append everything
     const postContainer = newEl(
       "div",
@@ -268,14 +280,16 @@ export class HomePage extends Page {
   async createComment(event) {
     event.preventDefault();
     const form = event.target;
+    const commentErr = form.querySelector(".error-comment-text");
+    commentErr.textContent = "";
     const content = form.querySelector(".comment-input")?.value.trim();
     const postId = form.querySelector(".comment-btn").dataset.postid;
 
     if (!content) {
-      this.displayError("Comment cannot be empty.");
+      this.displayCommentError("Comment cannot be empty.");
       return;
     } else if (content.length > 500) {
-      this.displayError("Comment is too long.");
+      this.displayCommentError("Comment is too long.");
     }
 
     try {
@@ -289,7 +303,6 @@ export class HomePage extends Page {
       if (!response.ok) {
         throw new Error(jsonResponse.message || "Create comment error");
       }
-      console.log("Comment created successfully");
       form.reset();
 
       this.createCommentElement(
@@ -303,7 +316,7 @@ export class HomePage extends Page {
         true
       );
     } catch (error) {
-      this.displayError(error);
+      this.displayCommentError(error);
     }
   }
 
@@ -343,7 +356,6 @@ export class HomePage extends Page {
         return;
       }
       for (const comment of data.comments) {
-        console.log(comment);
         this.createCommentElement(comment, commentsContainer);
       }
     } catch (error) {
@@ -355,6 +367,13 @@ export class HomePage extends Page {
     let errDiv = document.querySelector(".error-text");
     errDiv.textContent = message;
   }
+
+
+  displayCommentError(message) {
+    let errDiv = document.querySelector(".error-comment-text");
+    errDiv.textContent = message;
+  }
+
 
   createCommentElement(comment, commentsContainer, newcomment = false) {
     const commentProfileImg = newEl("img", {
@@ -439,14 +458,16 @@ export class HomePage extends Page {
       { class: `post-actions` },
       commentButton
     );
-    commentButton.addEventListener("click",(e) => {
+
+    // comment button event
+    const commentButtonHandler = (e) => {
       const overlay = document.querySelector("#backgroundOverlay")
       overlay.style.display = "block";
       const section = document.querySelector("#commentsSection");
       section.style.display = "block";
       this.createPostCommentsPopup(post); 
-      overlay.onclick = () => this.lastCommentId = null;
-    });
+    }
+    commentButton.addEventListener("click", commentButtonHandler);
 
     const postElement = newEl(
       "article",
@@ -485,7 +506,4 @@ export class HomePage extends Page {
       console.error(error);
     }
   }
-}
-
-function handleLike(postId) {
 }

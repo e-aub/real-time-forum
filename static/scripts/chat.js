@@ -157,9 +157,9 @@ class Chat extends status {
         const typingIndicatorContent = document.createElement('div');
         typingIndicatorContent.classList.add('message-content')
         typingIndicator.appendChild(typingIndicatorContent);
-        const typingIndocatorText = document.createElement('div');
+        const typingIndocatorText = document.createElement('img');
         typingIndocatorText.classList.add('message-text')
-        typingIndocatorText.textContent = 'is typing...';
+        typingIndocatorText.src = "/static/images/typing-texting.gif"
         typingIndicatorContent.appendChild(typingIndocatorText);
 
         messagesContainer.appendChild(typingIndicator);

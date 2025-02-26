@@ -1002,12 +1002,10 @@ p.post-body {
 }
 
 .typing-indicator .message-text {
-    background: #f0f2f5;
-    color: #050505;
-    padding: 8px 12px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.4;
+    width: 50px;
+    height: 30px;
+    border-radius: 10px;
+    display: block;
 }
 
 .typing-indicator.visible {

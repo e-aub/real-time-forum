@@ -975,8 +975,12 @@ p.post-body {
     background-color: #0056b3;
 }
 .typing-indicator {
+    height: 0;
+    overflow: hidden;
     opacity: 0;
-    display: none;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    opacity: 0;
     width: 100%;
     gap: 8px;
     align-items: flex-start;
@@ -1002,15 +1006,16 @@ p.post-body {
 }
 
 .typing-indicator .message-text {
-    width: 50px;
-    height: 30px;
-    border-radius: 10px;
+    width: 60px;
+    height: 35px;
     display: block;
 }
 
 .typing-indicator.visible {
+    height: auto;
+    overflow: visible;
     opacity: 1;
-    display: flex;
+    visibility: visible;
 }
 
 .chat-messages {

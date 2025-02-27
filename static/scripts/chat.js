@@ -63,16 +63,28 @@ class Chat extends status {
             let receiver = e.detail.sender;
             let isTyping = e.detail.typing;
             if (this.chatWindows.has(receiver) && this.chatWindows.get(receiver).focused) {              
-                let messagesContainer = this.chatWindows.get(receiver).messagesContainer;
+                let chatWindow = this.chatWindows.get(receiver);
+                let messagesContainer = chatWindow.messagesContainer;
 
                 let typingIndicator = messagesContainer.querySelector('.typing-indicator');
                 typingIndicator.classList.toggle('visible', isTyping);
-
+               
                 if (isTyping) {
-                    this.chatWindows.get(receiver).typingSound.pause();
-                    this.chatWindows.get(receiver).typingSound.play();
+                    chatWindow.typingSound.pause();
+                    chatWindow.typingSound.currentTime = 0;
+                    chatWindow.typingSound.play();
+                    clearInterval(chatWindow.offlineInterval);
+                    chatWindow.offlineInterval = setInterval(() => {
+                        const statusListElement = this.users.get(receiver).statusListElement.querySelector(".online-indicator");
+                        if ((statusListElement && statusListElement.classList.contains("hidden"))) {
+                            typingIndicator.classList.remove('visible');
+                            chatWindow.typingSound.pause();
+                            clearInterval(chatWindow.offlineInterval);
+                        }
+                    },5000);
                 } else {
-                    this.chatWindows.get(receiver).typingSound.pause();
+                    clearInterval(chatWindow.offlineInterval);
+                    chatWindow.typingSound.pause();
                 }
  
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -86,7 +98,7 @@ class Chat extends status {
         this.chatWindowContainerHtmlElement.prepend(chatWindow);
         const typingSound = new Audio('/static/audio/typing.mp3');
         typingSound.loop = true;
-        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null, typingSound: typingSound, lastSentId: 0 });
+        this.chatWindows.set(user.username, { element: chatWindow, messagesContainer: chatMessages,typingIndicator: typingIndicator, focused: true, isTyping: false, typingTimeout: null, typingSound: typingSound, lastSentId: 0, offlineInterval: null });
         await this.loadOldMessages(user.username, true);
         // this.pushToChatList(user);
     }
@@ -157,10 +169,14 @@ class Chat extends status {
         const typingIndicatorContent = document.createElement('div');
         typingIndicatorContent.classList.add('message-content')
         typingIndicator.appendChild(typingIndicatorContent);
-        const typingIndocatorText = document.createElement('img');
-        typingIndocatorText.classList.add('message-text')
-        typingIndocatorText.src = "/static/images/typing-texting.gif"
-        typingIndicatorContent.appendChild(typingIndocatorText);
+        const typingIndicatorAnimation = document.createElement('video');
+        typingIndicatorAnimation.classList.add('message-text')
+        typingIndicatorAnimation.src = '/static/images/typingAnimation.webm';
+        typingIndicatorAnimation.muted = true;
+        typingIndicatorAnimation.autoplay = true;
+        typingIndicatorAnimation.loop = true;
+
+        typingIndicatorContent.appendChild(typingIndicatorAnimation);
 
         messagesContainer.appendChild(typingIndicator);
 
@@ -218,6 +234,14 @@ class Chat extends status {
             msg.style.color = 'red';
         })
             
+        window.addEventListener('offline', (e) => {
+            console.log('offline');
+            const chatWindow = this.chatWindows.get(username);
+            clearInterval(chatWindow.offlineInterval);
+            chatWindow.typingSound.pause();
+            typingIndicator.classList.remove('visible');
+
+        })
 
         return [chatWindow, messagesContainer, typingIndicator];
     }
@@ -353,7 +377,7 @@ class Chat extends status {
             chatWindow.isTyping = false;
             const event = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
             document.dispatchEvent(event);
-        }, 1000);
+        }, 2000);
     }
 
     async loadOldMessages(username, scroll = false) {
@@ -449,6 +473,8 @@ class Chat extends status {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
         let typingEvent = new CustomEvent('sendtyping', { detail: { username: username, is_typing: false } });
+        clearTimeout(chatWindow.typingTimeout);
+        chatWindow.isTyping = false;
         document.dispatchEvent(typingEvent);
 
         let e = new CustomEvent('sendmessage', {
